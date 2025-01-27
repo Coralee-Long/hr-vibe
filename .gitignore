@@ -1,0 +1,38 @@
+# General
+.DS_Store
+*.log
+*.env
+dist/
+build/
+coverage/
+temp/
+
+# IntelliJ IDEA-specific
+.idea/
+*.iml
+out/
+
+# Frontend (React/TypeScript)
+frontend/node_modules/
+frontend/build/
+frontend/.env
+frontend/coverage/
+
+# Backend (Spring Boot)
+backend/target/
+backend/.env
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/logs/
+backend/idea/
+backend/*.iml
+
+# Maven
+.mvn/
+target/
+dependency-reduced-pom.xml
+
+# Docker
+**/docker-compose.override.yml
+**/docker-compose.override.yaml
