@@ -2,13 +2,13 @@
           on:
             push:
               branches:
-                - master
+                - main
             pull_request:
               types: [ opened, synchronize, reopened ]
           jobs:
-            build:
-              name: Build and analyze
-              runs-on: ubuntu-latest
+            sonarqube:
+              name: SonarQube
+              runs-on: macos-latest
               steps:
                 - uses: actions/checkout@v4
                   with:
