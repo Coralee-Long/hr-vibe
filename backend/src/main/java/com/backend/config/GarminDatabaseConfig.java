@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class GarminDatabaseConfig {
 
-   private final String databaseUrl = "/Users/coralee/Projects/GarminDB/GarminData/DBs/garmin_summary.db";
+   private final String databaseUrl = "/Users/coralee/Projects/GarminDB/GarminData/DBs/garmin.db";
 
    public Connection getConnection() {
       try {

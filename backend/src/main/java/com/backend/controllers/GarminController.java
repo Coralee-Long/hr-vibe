@@ -5,6 +5,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+import java.util.Map;
+
 @RestController
 public class GarminController {
 
@@ -14,9 +17,16 @@ public class GarminController {
       this.garminSQLiteService = garminSQLiteService;
    }
 
-   @GetMapping("/table-data")
-   public String getTableData(@RequestParam String tableName) {
-      garminSQLiteService.printTableData(tableName);
-      return "Data for table '" + tableName + "' printed to console.";
+   // Endpoint to save daily_summary table as JSON
+   @GetMapping("/save-table")
+   public String saveTable(@RequestParam String tableName) {
+      garminSQLiteService.saveTableAsJson(tableName);
+      return "Table '" + tableName + "' has been saved as JSON.";
+   }
+
+   // Endpoint to fetch daily_summary table data as JSON
+   @GetMapping("/fetch-table")
+   public List<Map<String, Object>> fetchTable(@RequestParam String tableName) {
+      return garminSQLiteService.fetchTableData(tableName);
    }
 }
