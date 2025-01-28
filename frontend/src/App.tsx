@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
-import "./App.css";
 
 import { Loader } from "@/common/Loader.tsx";
 import { Dashboard } from "@/pages/Dashboard/Dashboard.tsx";
@@ -25,8 +24,15 @@ export const App = () => {
   ) : (
     <>
       <Routes>
-        <PageTitle title="Login | HRVibe" />
-        <Route path="/login" element={ <Login /> } />
+        <Route
+          path="/"
+          element={
+            <>
+              <PageTitle title="Login | HRVibe" />
+              <Login />
+            </>
+          }
+        />
 
         <Route
           path="/dashboard"
