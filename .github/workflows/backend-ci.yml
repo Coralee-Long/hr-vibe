@@ -1,4 +1,7 @@
-name: Java CI with Maven
+# 🚀 Backend CI Workflow
+# This workflow builds the backend using Maven, caches dependencies, and ensures the project compiles successfully.
+
+name: Java Backend CI with Maven
 
 on:
   push:
