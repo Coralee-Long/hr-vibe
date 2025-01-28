@@ -54,5 +54,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           MONGO_URI: ${{ secrets.MONGO_URI }}
         working-directory: backend
-        run: mvn sonar:sonar -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
+        run: |
+          mvn clean compile  # Ensures Java 23 is compiled before Sonar scan
+          mvn verify sonar:sonar -Dsonar.login=${{ secrets.SONAR_TOKEN }}

@@ -18,6 +18,8 @@
         <sonar.projectKey>coralee-long_hr-vibe-backend</sonar.projectKey>
         <sonar.organization>coralee-long</sonar.organization>
         <sonar.host.url>https://sonarcloud.io</sonar.host.url>
+        <sonar.java.binaries>${project.build.directory}/classes</sonar.java.binaries>
+        <sonar.scanner.mode>publish</sonar.scanner.mode>
     </properties>
     <dependencies>
         <dependency>
