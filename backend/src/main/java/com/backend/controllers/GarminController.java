@@ -1,16 +1,13 @@
 package com.backend.controllers;
 
 import com.backend.services.GarminSQLiteService;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api")  // Base path for all API routes
+@RequestMapping("/api")
 public class GarminController {
 
    private final GarminSQLiteService garminSQLiteService;
@@ -19,42 +16,21 @@ public class GarminController {
       this.garminSQLiteService = garminSQLiteService;
    }
 
-   /**
-    * ✅ Fetch all table names from the database.
-    * URL: GET /api/table-names
-    */
    @GetMapping("/table-names")
-   public Map<String, Object> getTableNames() {
-      List<String> tableNames = garminSQLiteService.getAllTableNames();
+   public Map<String, Object> getTableNames(@RequestParam String databaseName) {
+      List<String> tableNames = garminSQLiteService.getAllTableNames(databaseName);
       return Map.of("tables", tableNames);
    }
 
-   /**
-    * ✅ Save a specific table as a JSON file.
-    * URL: GET /api/save-table?tableName={tableName}
-    */
    @GetMapping("/save-table")
-   public String saveTable(@RequestParam String tableName) {
-      garminSQLiteService.saveTableAsJson(tableName);
-      return "Table '" + tableName + "' has been saved as JSON.";
+   public String saveTable(@RequestParam String databaseName, @RequestParam String tableName) {
+      garminSQLiteService.saveTableAsJson(databaseName, tableName);
+      return "Table '" + tableName + "' from '" + databaseName + "' has been saved as JSON.";
    }
 
-   /**
-    * ✅ Fetch table data as JSON.
-    * URL: GET /api/fetch-table?tableName={tableName}
-    */
-   @GetMapping("/fetch-table")
-   public List<Map<String, Object>> fetchTable(@RequestParam String tableName) {
-      return garminSQLiteService.fetchTableData(tableName);
-   }
-
-   /**
-    * ✅ Save all tables in the database as JSON.
-    * URL: GET /api/save-all-tables
-    */
    @GetMapping("/save-all-tables")
-   public Map<String, Object> saveAllTables() {
-      List<String> savedTables = garminSQLiteService.saveAllTablesAsJson();
+   public Map<String, Object> saveAllTables(@RequestParam String databaseName) {
+      List<String> savedTables = garminSQLiteService.saveAllTablesAsJson(databaseName);
       return Map.of("message", "All tables saved successfully", "tables", savedTables);
    }
 }

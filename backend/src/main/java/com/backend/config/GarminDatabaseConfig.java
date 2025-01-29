@@ -1,28 +1,27 @@
 package com.backend.config;
 
+import org.springframework.context.annotation.Configuration;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-import org.springframework.context.annotation.Configuration;
-
-
 @Configuration
 public class GarminDatabaseConfig {
 
-   private final String databaseUrl = "/Users/coralee/Projects/GarminDB/GarminData/DBs/garmin.db";
+   private static final String BASE_PATH = "/Users/coralee/Projects/GarminDB/GarminData/DBs/";
 
-   public Connection getConnection() {
+   public Connection getConnection(String databaseName) {
       try {
+         String databaseUrl = BASE_PATH + databaseName;
          Connection connection = DriverManager.getConnection("jdbc:sqlite:" + databaseUrl);
 
-         // Debug query to test connection
+         // Debug log: List tables in DB
          Statement stmt = connection.createStatement();
          ResultSet rs = stmt.executeQuery("SELECT name FROM sqlite_master WHERE type='table';");
 
-         System.out.println("Tables in the database:");
+         System.out.println("Tables in database " + databaseName + ":");
          while (rs.next()) {
             System.out.println(rs.getString("name"));
          }
@@ -31,7 +30,7 @@ public class GarminDatabaseConfig {
          stmt.close();
          return connection;
       } catch (SQLException e) {
-         throw new RuntimeException("Failed to connect to the Garmin SQLite database: " + e.getMessage(), e);
+         throw new RuntimeException("Failed to connect to SQLite DB: " + e.getMessage(), e);
       }
    }
 }
