@@ -14,8 +14,8 @@ export const MetricToggles: React.FC<MetricTogglesProps> = ({
 }) => {
   return (
     <>
-      <div className="mb-8">
-        <h2 className="mb-1.5 text-title-md2 font-bold text-black dark:text-white">
+      <div className="mb-8 border-t border-strokedark dark:border-strokedark">
+        <h2 className="mb-1.5 text-title-md2 font-bold text-black dark:text-white pt-6">
           Health Metrics
         </h2>
         {/*<p className="font-medium">SubHeading</p>*/}

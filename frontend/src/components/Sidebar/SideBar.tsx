@@ -64,7 +64,7 @@ export const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       )}
     >
       {/* Sidebar Header */}
-      <div className="flex items-center justify-center px-6 py-6">
+      <div className="flex items-center justify-center p-4">
         <NavLink to="/dashboard">
           <div className="flex items-center justify-center">
             <img src={Logo} alt="HRVibe Logo" className="w-12 h-12" />
