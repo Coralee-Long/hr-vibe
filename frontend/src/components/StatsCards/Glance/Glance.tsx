@@ -1,4 +1,9 @@
 import { HeartRate } from "@/components/StatsCards/Glance/HeartRate.tsx";
+import { VO2Max } from "@/components/StatsCards/Glance/VO2Max.tsx";
+import { HRVStatus } from "@/components/StatsCards/Glance/HRV.tsx";
+import { Stress } from "@/components/StatsCards/Glance/Stress.tsx";
+import { Sleep } from "@/components/StatsCards/Glance/Sleep.tsx";
+import { IntensityMinutes } from "@/components/StatsCards/Glance/IntensityMinutes.tsx";
 
 export const Glance = () => {
   return (
@@ -12,29 +17,14 @@ export const Glance = () => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 2xl:gap-7.5">
+      <div className="grid grid-cols-1 gap-4  md:grid-cols-2 md:gap-6 xl:grid-cols-3 2xl:gap-7.5">
         <HeartRate />
-
-        <div
-          className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark md:p-6 xl:p-7.5">
-          <h3 className="mb-2 text-title-md font-bold text-black dark:text-white">
-            Another Stat
-          </h3>
-        </div>
-        <div
-          className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark md:p-6 xl:p-7.5">
-          <h3 className="mb-2 text-title-md font-bold text-black dark:text-white">
-            Another Stat
-          </h3>
-        </div>
-        <div
-          className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark md:p-6 xl:p-7.5">
-          <h3 className="mb-2 text-title-md font-bold text-black dark:text-white">
-            Another Stat
-          </h3>
-        </div>
+        <VO2Max />
+        <HRVStatus />
+        <Sleep />
+        <Stress />
+        <IntensityMinutes />
       </div>
     </div>
   );
 };
-

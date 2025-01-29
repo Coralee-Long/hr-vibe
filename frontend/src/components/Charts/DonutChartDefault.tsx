@@ -1,6 +1,6 @@
-import { ApexOptions } from 'apexcharts';
-import React, { useState } from 'react';
-import ReactApexChart from 'react-apexcharts';
+import { ApexOptions } from "apexcharts";
+import React, { useState } from "react";
+import ReactApexChart from "react-apexcharts";
 
 interface DonutChartState {
   series: number[];
@@ -8,21 +8,21 @@ interface DonutChartState {
 
 const options: ApexOptions = {
   chart: {
-    fontFamily: 'Satoshi, sans-serif',
-    type: 'donut',
+    fontFamily: "Satoshi, sans-serif",
+    type: "donut",
   },
-  colors: ['#3C50E0', '#6577F3', '#8FD0EF', '#0FADCF'],
-  labels: ['Desktop', 'Tablet', 'Mobile', 'Unknown'],
+  colors: ["#3C50E0", "#6577F3", "#8FD0EF", "#0FADCF"],
+  labels: ["Desktop", "Tablet", "Mobile", "Unknown"],
   legend: {
     show: false,
-    position: 'bottom',
+    position: "bottom",
   },
 
   plotOptions: {
     pie: {
       donut: {
-        size: '65%',
-        background: 'transparent',
+        size: "65%",
+        background: "transparent",
       },
     },
   },
@@ -50,8 +50,6 @@ const options: ApexOptions = {
 };
 
 export const DonutChartDefault: React.FC = () => {
-  // @ts-expect-error
-  // temporarily
   const [state, setState] = useState<DonutChartState>({
     series: [65, 34, 12, 56],
   });
@@ -65,7 +63,7 @@ export const DonutChartDefault: React.FC = () => {
   // handleReset;
 
   return (
-<>
+    <>
       <div className="mb-3 justify-between gap-4 sm:flex">
         <div>
           <h5 className="text-xl font-semibold text-black dark:text-white">
@@ -158,6 +156,6 @@ export const DonutChartDefault: React.FC = () => {
           </div>
         </div>
       </div>
-</>
+    </>
   );
 };

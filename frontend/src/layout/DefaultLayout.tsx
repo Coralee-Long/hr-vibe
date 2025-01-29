@@ -2,7 +2,9 @@ import React, { useState, ReactNode } from "react";
 import { Header } from "@/components/Header/Header.tsx";
 import { Sidebar } from "@/components/Sidebar/SideBar.tsx";
 
-export const DefaultLayout: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const DefaultLayout: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (

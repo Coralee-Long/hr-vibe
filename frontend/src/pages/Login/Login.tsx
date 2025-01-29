@@ -12,11 +12,26 @@ export const Login: React.FC = () => {
         <div className="flex flex-wrap items-center">
           <div className="hidden w-full xl:block xl:w-1/2">
             <div className="py-17.5 px-26 text-center">
-              <Link className="mb-5.5 flex flex-col items-center justify-center" to="/dashboard">
+              <Link
+                className="mb-5.5 flex flex-col items-center justify-center"
+                to="/dashboard"
+              >
                 {/* TODO: implement dark icon later*/}
-                <img className="hidden dark:block w-[65%]" src={Logo} alt="HRVibe Logo" />
-                <img className="dark:hidden w-[65%]" src={LogoDark} alt="HRVibe Logo" />
-                <img className="hidden dark:block w-[65%]" src={LogoText} alt="HRVibe" />
+                <img
+                  className="hidden dark:block w-[65%]"
+                  src={Logo}
+                  alt="HRVibe Logo"
+                />
+                <img
+                  className="dark:hidden w-[65%]"
+                  src={LogoDark}
+                  alt="HRVibe Logo"
+                />
+                <img
+                  className="hidden dark:block w-[65%]"
+                  src={LogoText}
+                  alt="HRVibe"
+                />
               </Link>
             </div>
           </div>
@@ -155,4 +170,3 @@ export const Login: React.FC = () => {
     </LoginLayout>
   );
 };
-

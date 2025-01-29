@@ -25,5 +25,5 @@ export const DashboardIcon = () => {
         fill=""
       />
     </svg>
-  )
-}
+  );
+};

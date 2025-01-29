@@ -1,6 +1,4 @@
-import { HeartRateDonutChart } from "@/components/Charts/HeartRateDonutChart.tsx";
-
-export const HeartRate = () => {
+export const HRVStatus = () => {
   return (
     <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark md:p-6 xl:p-7.5">
       {/*TODO: Create Icons Later*/}
@@ -18,12 +16,10 @@ export const HeartRate = () => {
           />
         </svg>
         <h2 className="mb-1.5 text-title-md2 font-bold text-black dark:text-white">
-          Heart Rate
+          HRV Status
         </h2>
       </div>
-      <div>
-        <HeartRateDonutChart />
-      </div>
+      <div>{/*Info here*/}</div>
     </div>
   );
 };

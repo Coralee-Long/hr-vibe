@@ -10,9 +10,17 @@ const options: ApexOptions = {
   chart: {
     fontFamily: "Satoshi, sans-serif",
     type: "donut",
+    width: "100%",
   },
-  colors: [ "#F8D66D", "#FFB54C", "#FF6961",  "transparent", "#88CFF1", "#8CD47E"],
-  labels: [ "Zone 3", "Zone 4", "Zone 5", "EMPTY", "Zone 1", "Zone 2"],
+  colors: [
+    "#F8D66D",
+    "#FFB54C",
+    "#FF6961",
+    "transparent",
+    "#88CFF1",
+    "#8CD47E",
+  ],
+  labels: ["Zone 3", "Zone 4", "Zone 5", "EMPTY", "Zone 1", "Zone 2"],
   legend: {
     show: false,
     position: "bottom",
@@ -21,7 +29,7 @@ const options: ApexOptions = {
   plotOptions: {
     pie: {
       donut: {
-        size: "65%",
+        size: "70%",
         background: "transparent",
       },
     },
@@ -42,7 +50,7 @@ const options: ApexOptions = {
       breakpoint: 640,
       options: {
         chart: {
-          width: 200,
+          width: "90%",
         },
       },
     },
@@ -66,7 +74,6 @@ export const HeartRateDonutChart: React.FC = () => {
   return (
     <>
       <div className="mb-3 justify-end gap-4 sm:flex">
-
         <div>
           <div className="relative z-20 inline-block">
             <select

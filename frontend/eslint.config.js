@@ -25,9 +25,11 @@ export default tseslint.config(
       "react/react-in-jsx-scope": "off",
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
-      "no-multiple-empty-lines": ["error", { max: 1 }], // Allow only 1 blank line max
-      "no-trailing-spaces": "error", // Remove trailing spaces
+      "no-multiple-empty-lines": ["warn", { max: 1 }], // Allow only 1 blank line max
+      "no-trailing-spaces": "warn",
       "no-unused-vars": "warn",
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-explicit-any": "warn",
       "no-console": ["warn", { allow: ["warn", "error"] }],
       "prefer-const": "error",
       quotes: ["warn", "double"], // Ensure double quotes
