@@ -53,6 +53,12 @@ module.exports = {
         success: "#219653",
         danger: "#D34053",
         warning: "#FFA70B",
+        "zone-empty": "#FFFFFF",
+        "zone-1": "#88CFF1",
+        "zone-2": "#8CD47E",
+        "zone-3": "#F8D66D",
+        "zone-4": "#FFB54C",
+        "zone-5": "#FF6961",
       },
       fontSize: {
         "title-xxl": ["44px", "55px"],

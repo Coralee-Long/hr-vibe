@@ -12,7 +12,7 @@ interface SidebarProps {
   setSidebarOpen: (arg: boolean) => void;
 }
 
-const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
+export const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
   const match = useMatch("/dashboard/*");
   const navigate = useNavigate();
 
@@ -64,11 +64,11 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
       )}
     >
       {/* Sidebar Header */}
-      <div className="flex items-center justify-between px-6 py-6">
+      <div className="flex items-center justify-center px-6 py-6">
         <NavLink to="/dashboard">
-          <div className="flex items-center">
-            <img src={Logo} alt="HRVibe Logo" className="w-16 h-16" />
-            <img src={LogoText} alt="HRVibe Text" className="h-10 pl-3" />
+          <div className="flex items-center justify-center">
+            <img src={Logo} alt="HRVibe Logo" className="w-12 h-12" />
+            <img src={LogoText} alt="HRVibe Text" className="h-8 pl-3" />
           </div>
         </NavLink>
 
@@ -171,5 +171,3 @@ const Sidebar = ({ sidebarOpen, setSidebarOpen }: SidebarProps) => {
     </aside>
   );
 };
-
-export default Sidebar;

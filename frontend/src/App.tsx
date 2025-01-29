@@ -29,7 +29,7 @@ export const App = () => {
     <>
       <Routes>
         <Route
-          path="/"
+          path="/login"
           element={
             <>
               <PageTitle title="Login | HRVibe" />

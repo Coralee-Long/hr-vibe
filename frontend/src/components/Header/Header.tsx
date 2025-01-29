@@ -5,7 +5,7 @@ import DropdownUser from "./DropdownUser";
 import LogoIcon from "@/images/logo/hrvibe-logo.png";
 import DarkModeSwitcher from "./DarkModeSwitcher";
 
-const Header = (props: {
+export const Header = (props: {
   sidebarOpen: string | boolean | undefined;
   setSidebarOpen: (arg0: boolean) => void;
 }) => {
@@ -56,8 +56,8 @@ const Header = (props: {
           </button>
           {/* <!-- Hamburger Toggle BTN --> */}
 
-          <Link className="block flex-shrink-0 lg:hidden" to="/">
-              <img src={LogoIcon} alt="HRVibe Logo Icon" className="w-12 h-12" />
+          <Link className="block flex-shrink-0 lg:hidden" to="/dashboard">
+              <img src={LogoIcon} alt="HRVibe Logo Icon" className="w-8 h-8" />
           </Link>
         </div>
 
@@ -121,4 +121,4 @@ const Header = (props: {
   );
 };
 
-export default Header;
+
