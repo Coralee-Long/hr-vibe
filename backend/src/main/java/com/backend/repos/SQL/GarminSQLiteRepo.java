@@ -1,4 +1,4 @@
-package com.backend.repos;
+package com.backend.repos.SQL;
 
 import com.backend.config.GarminDatabaseConfig;
 import org.springframework.stereotype.Repository;
