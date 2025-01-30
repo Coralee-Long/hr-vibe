@@ -19,15 +19,25 @@ public class DataParsingUtils {
       return (time != null && time.contains(".")) ? time.substring(0, 8) : time;
    }
 
-   /** Safely extracts a String value. */
+   /** Safely extracts a String value, cleaning time formats if necessary. */
    public static String getString(Map<String, Object> data, String key) {
-      return data.getOrDefault(key, null) != null ? data.get(key).toString() : null;
+      Object value = data.getOrDefault(key, null);
+      if (value == null) return null;
+
+      String stringValue = value.toString();
+      return key.contains("time") || key.contains("sleep") ? cleanTimeFormat(stringValue) : stringValue;
    }
 
-   /** Safely extracts an Integer value. */
+   /** Safely extracts an Integer value, rounding if the raw data is a decimal. */
    public static Integer getInteger(Map<String, Object> data, String key) {
       try {
-         return data.getOrDefault(key, null) != null ? Integer.valueOf(data.get(key).toString()) : null;
+         Object value = data.getOrDefault(key, null);
+         if (value == null) return null;
+
+         if (value instanceof Double) {
+            return (int) Math.round((Double) value); // Round decimals
+         }
+         return Integer.valueOf(value.toString());
       } catch (NumberFormatException e) {
          return null;
       }
@@ -116,7 +126,7 @@ public class DataParsingUtils {
    public static RecentDailySummaries mapToRecentDailySummaries(List<CurrentDaySummary> summaries) {
       return new RecentDailySummaries(
           null, // MongoDB will generate the ID
-          summaries.get(0).day(), // Most recent day
+          summaries.getFirst().day(), // Most recent day
 
           summaries.stream().map(s -> s.summary().hrMin()).toList(),
           summaries.stream().map(s -> s.summary().hrMax()).toList(),

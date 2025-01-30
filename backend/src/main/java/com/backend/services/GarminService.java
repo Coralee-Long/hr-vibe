@@ -75,4 +75,26 @@ public class GarminService {
    private CurrentDaySummary mapToCurrentDaySummary(Map<String, Object> data) {
       return new CurrentDaySummary(null, LocalDate.parse(data.get("day").toString()), mapToBaseSummary(data));
    }
+
+   /**
+    * Fetches the last 7 daily summaries from MongoDB and maps them into a RecentDailySummaries model.
+    */
+   public void processAndSaveRecentDailySummaries() {
+      logger.info("Fetching last 7 days of daily summaries...");
+
+      // Fetch the last 7 days of summaries from MongoDB, sorted by date descending
+      List<CurrentDaySummary> last7Days = currentDaySummaryRepo.findTop7ByOrderByDayDesc();
+
+      if (last7Days.isEmpty()) {
+         logger.warn("No daily summary data found. Skipping RecentDailySummaries update.");
+         return;
+      }
+
+      // Convert the last 7 days of summaries into a RecentDailySummaries model
+      RecentDailySummaries recentSummary = mapToRecentDailySummaries(last7Days);
+
+      // Save to MongoDB
+      recentDailySummariesRepo.save(recentSummary);
+      logger.info("✅ Successfully saved RecentDailySummaries for latest day {}", recentSummary.latestDay());
+   }
 }
