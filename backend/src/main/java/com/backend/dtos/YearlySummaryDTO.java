@@ -5,9 +5,12 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public record YearlySummaryDTO(
-    @NotBlank String id,
+    @NotBlank
+    String id,
 
-    @NotNull LocalDate firstDay, // First day of the year (YYYY-01-01)
+    @NotNull
+    LocalDate firstDay, // First day of the year (YYYY-01-01)
 
-    @NotNull BaseSummaryDTO summary // Embedded validated summary data
+    @NotNull
+    BaseSummaryDTO summary // Embedded validated summary data
 ) {}

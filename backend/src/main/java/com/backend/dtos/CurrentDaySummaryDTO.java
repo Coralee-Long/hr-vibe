@@ -5,9 +5,14 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 
 public record CurrentDaySummaryDTO(
-    @NotBlank String id,
 
-    @NotNull LocalDate day, // Garmin provides "day", not "date"
+    @NotBlank
+    String id, // Unique MongoDB ID
 
-    @NotNull BaseSummaryDTO summary // Embedded validated summary data
+    @NotNull
+    LocalDate day, // Specific date for the summary (YYYY-MM-DD)
+
+    @NotNull
+    BaseSummaryDTO summary // Embedded summary data containing health metrics
 ) {}
+
