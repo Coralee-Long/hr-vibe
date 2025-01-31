@@ -330,15 +330,15 @@ class DataParsingUtilsTest {
 
    /**
     * ✅ Test `mapToRecentDailySummaries()` when input list is null.
-    * Expected: Should throw IllegalArgumentException.
+    * Expected: Should throw NoSuchElementException.
     */
    @Test
    void givenNullList_whenMapToRecentDailySummaries_thenThrowsException() {
       // GIVEN a null input list
       List<CurrentDaySummary> summaries = null;
 
-      // WHEN calling mapToRecentDailySummaries THEN it should throw IllegalArgumentException
-      assertThrows(IllegalArgumentException.class,
+      // WHEN calling mapToRecentDailySummaries THEN it should throw NoSuchElementException
+      assertThrows(NoSuchElementException.class,
                    () -> DataParsingUtils.mapToRecentDailySummaries(summaries));
    }
 

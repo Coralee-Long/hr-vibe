@@ -7,7 +7,6 @@ import com.backend.models.RecentDailySummaries;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.stream.Collectors;
 
 public class DataParsingUtils {
 
@@ -39,7 +38,11 @@ public class DataParsingUtils {
       Object value = data.getOrDefault(key, null);
       if (value == null) return null;
 
-      return Double.valueOf(value.toString());
+      try {
+         return Double.valueOf(value.toString());
+      } catch (NumberFormatException e) {
+         return null; // ✅ Gracefully handle invalid numeric input
+      }
    }
 
    public static Integer roundDoubleToInteger(Double value) {
@@ -145,7 +148,7 @@ public class DataParsingUtils {
     */
    public static RecentDailySummaries mapToRecentDailySummaries(List<CurrentDaySummary> summaries) {
       if (summaries == null || summaries.isEmpty()) {
-         throw new IllegalArgumentException("Summaries list cannot be null or empty");
+         throw new NoSuchElementException("Summaries list cannot be null or empty");
       }
 
       return new RecentDailySummaries(
