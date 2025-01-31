@@ -45,9 +45,17 @@ public class GarminSQLiteRepo {
 
    public List<Map<String, Object>> fetchTableData(String databaseName, String tableName) {
       List<Map<String, Object>> result = new ArrayList<>();
-      try (Connection connection = garminDbConfig.getConnection(databaseName)) {
-         Statement stmt = connection.createStatement();
-         ResultSet rs = stmt.executeQuery("SELECT * FROM " + tableName);
+
+      // ✅ Validate table name against a whitelist before using it in the query
+      if (!isValidTableName(tableName)) {
+         throw new IllegalArgumentException("Invalid table name: " + tableName);
+      }
+
+      String query = "SELECT * FROM " + tableName; // Now safe because table name is validated
+
+      try (Connection connection = garminDbConfig.getConnection(databaseName);
+           Statement stmt = connection.createStatement();
+           ResultSet rs = stmt.executeQuery(query)) {
 
          int columnCount = rs.getMetaData().getColumnCount();
          while (rs.next()) {
@@ -104,5 +112,13 @@ public class GarminSQLiteRepo {
          }
       }
       return savedTables;
+   }
+
+   /**
+    * ✅ Helper method: Ensures the provided table name is valid by checking against a whitelist.
+    */
+   private boolean isValidTableName(String tableName) {
+      List<String> allowedTables = List.of("daily_summary", "weekly_summary", "monthly_summary"); // Add valid table names here
+      return allowedTables.contains(tableName);
    }
 }

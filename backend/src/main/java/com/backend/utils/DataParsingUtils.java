@@ -6,6 +6,7 @@ import com.backend.models.RecentDailySummaries;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 public class DataParsingUtils {
 
@@ -56,6 +57,11 @@ public class DataParsingUtils {
     * Converts raw data into a `BaseSummary` object.
     */
    public static BaseSummary mapToBaseSummary(Map<String, Object> data) {
+      // ✅ Ensure input is not null
+      if (data == null) {
+         throw new IllegalArgumentException("Data map cannot be null");
+      }
+
       return new BaseSummary(
           getInteger(data, "hr_min"),
           getInteger(data, "hr_max"),
@@ -124,6 +130,15 @@ public class DataParsingUtils {
     * Maps a list of the last 7 `CurrentDaySummary` records into a `RecentDailySummaries` model.
     */
    public static RecentDailySummaries mapToRecentDailySummaries(List<CurrentDaySummary> summaries) {
+      // ✅ Ensure input is not null
+      if (summaries == null) {
+         throw new IllegalArgumentException("Summaries list cannot be null");
+      }
+
+      if (summaries.isEmpty()) {
+         throw new NoSuchElementException("Summaries list cannot be empty");
+      }
+
       return new RecentDailySummaries(
           null, // MongoDB will generate the ID
           summaries.getFirst().day(), // Most recent day
