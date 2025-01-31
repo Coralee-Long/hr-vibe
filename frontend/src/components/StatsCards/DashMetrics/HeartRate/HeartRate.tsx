@@ -1,6 +1,10 @@
 import { HeartRateDonutChart } from "@/components/Charts/HeartRateDonutChart.tsx";
+import { TrendsGraph } from "@/types/TrendsGraph.tsx";
 
 export const HeartRate = () => {
+  // Mock data for average resting HR over the last 7 days
+  const restingHrData = [63, 65, 67, 64, 62, 66, 68];
+
   return (
     <div className="rounded-sm border border-stroke bg-white p-4 shadow-default dark:border-strokedark dark:bg-boxdark md:p-6 xl:p-7.5">
       {/*TODO: Create Icons Later*/}
@@ -23,6 +27,12 @@ export const HeartRate = () => {
       </div>
       <div>
         <HeartRateDonutChart />
+        <TrendsGraph
+          title="Resting Heart Rate"
+          label="Avg RHR"
+          data={restingHrData}
+          color="#FF6961" // Red color for HR
+        />
       </div>
     </div>
   );

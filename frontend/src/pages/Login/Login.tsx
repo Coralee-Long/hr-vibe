@@ -1,13 +1,12 @@
-import React from "react";
 import { Link } from "react-router-dom";
 import LogoDark from "@/images/logo/hrvibe-logo.png";
 import Logo from "@/images/logo/hrvibe-logo.png";
 import LogoText from "@/images/logo/hrvibe-text2.png";
-import { LoginLayout } from "@/layout/LoginLayout.tsx";
+import { LayoutNoHeader } from "@/layout/LayoutNoHeader.tsx";
 
-export const Login: React.FC = () => {
+export const Login = () => {
   return (
-    <LoginLayout>
+    <LayoutNoHeader>
       <div className="rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark">
         <div className="flex flex-wrap items-center">
           <div className="hidden w-full xl:block xl:w-1/2">
@@ -167,6 +166,6 @@ export const Login: React.FC = () => {
           </div>
         </div>
       </div>
-    </LoginLayout>
+    </LayoutNoHeader>
   );
 };
