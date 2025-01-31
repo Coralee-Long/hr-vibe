@@ -6,6 +6,7 @@ import static com.backend.utils.SummaryUtils.*;
 import com.backend.models.*;
 import com.backend.repos.MongoDB.*;
 import com.backend.repos.SQL.GarminSQLiteRepo;
+import com.backend.services.ValidationService;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Service;
@@ -29,26 +30,32 @@ public class GarminService {
    private final MonthlySummaryRepo monthlySummaryRepo;
    private final YearlySummaryRepo yearlySummaryRepo;
    private final RecentDailySummariesRepo recentDailySummariesRepo;
+   private final ValidationService validationService;
 
    public GarminService(GarminSQLiteRepo garminSQLiteRepo,
                         CurrentDaySummaryRepo currentDaySummaryRepo,
                         WeeklySummaryRepo weeklySummaryRepo,
                         MonthlySummaryRepo monthlySummaryRepo,
                         YearlySummaryRepo yearlySummaryRepo,
-                        RecentDailySummariesRepo recentDailySummariesRepo){
+                        RecentDailySummariesRepo recentDailySummariesRepo,
+                        ValidationService validationService) {
       this.garminSQLiteRepo = garminSQLiteRepo;
       this.currentDaySummaryRepo = currentDaySummaryRepo;
       this.weeklySummaryRepo = weeklySummaryRepo;
       this.monthlySummaryRepo = monthlySummaryRepo;
       this.yearlySummaryRepo = yearlySummaryRepo;
       this.recentDailySummariesRepo = recentDailySummariesRepo;
+      this.validationService = validationService;
    }
 
    /**
-    * Generic method to process and save a summary.
+    * Generic method to process, validate, and save a summary.
     */
-   private <T> void processAndSaveSummary (String databaseName, String tableName, String dateColumn,
-                                          Function<Map<String, Object>, T> mapper, MongoRepository<T, String> repo) {
+   protected <T> void processAndSaveSummary(
+       String databaseName,
+       String tableName,
+       Function<Map<String, Object>, T> mapper,
+       MongoRepository<T, String> repo) {
       logger.info("Fetching data from SQLite: {}, table: {}", databaseName, tableName);
 
       List<Map<String, Object>> rawData = garminSQLiteRepo.fetchTableData(databaseName, tableName);
@@ -57,32 +64,32 @@ public class GarminService {
          return;
       }
 
-      Optional<Map<String, Object>> latestData = getLatestData(rawData, dateColumn);
+      Optional<Map<String, Object>> latestData = getLatestData(rawData, "day");
       if (latestData.isEmpty()) {
          logger.warn("No valid data found for table: {}", tableName);
          return;
       }
 
       T summary = mapper.apply(latestData.get());
+
+      // ✅ Validate before saving
+      validationService.validate(summary);
+
       repo.save(summary);
-      logger.info("✅ Successfully saved {} summary for {}", summary.getClass().getSimpleName(), dateColumn);
+      logger.info("✅ Successfully saved {} summary for {}", summary.getClass().getSimpleName(), "day");
    }
 
    public void processAndSaveCurrentDaySummary(String db, String table) {
-      processAndSaveSummary(db, table, "day", this::mapToCurrentDaySummary, currentDaySummaryRepo);
+      processAndSaveSummary(db, table, this::mapToCurrentDaySummary, currentDaySummaryRepo);
    }
 
    private CurrentDaySummary mapToCurrentDaySummary(Map<String, Object> data) {
       return new CurrentDaySummary(null, LocalDate.parse(data.get("day").toString()), mapToBaseSummary(data));
    }
 
-   /**
-    * Fetches the last 7 daily summaries from MongoDB and maps them into a RecentDailySummaries model.
-    */
    public void processAndSaveRecentDailySummaries() {
       logger.info("Fetching last 7 days of daily summaries...");
 
-      // Fetch the last 7 days of summaries from MongoDB, sorted by date descending
       List<CurrentDaySummary> last7Days = currentDaySummaryRepo.findTop7ByOrderByDayDesc();
 
       if (last7Days.isEmpty()) {
@@ -90,10 +97,11 @@ public class GarminService {
          return;
       }
 
-      // Convert the last 7 days of summaries into a RecentDailySummaries model
       RecentDailySummaries recentSummary = mapToRecentDailySummaries(last7Days);
 
-      // Save to MongoDB
+      // ✅ Validate before saving
+      validationService.validate(recentSummary);
+
       recentDailySummariesRepo.save(recentSummary);
       logger.info("✅ Successfully saved RecentDailySummaries for latest day {}", recentSummary.latestDay());
    }

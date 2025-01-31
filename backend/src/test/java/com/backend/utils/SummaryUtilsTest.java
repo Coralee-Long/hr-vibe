@@ -3,8 +3,9 @@ package com.backend.utils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.read.ListAppender;
 
 import java.util.HashMap;
 import java.util.List;
@@ -12,21 +13,25 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+
 
 class SummaryUtilsTest {
 
-   private Logger mockLogger;
+   private ListAppender<ILoggingEvent> logAppender;
+   private ch.qos.logback.classic.Logger logger;
 
    @BeforeEach
    void setUp() {
-      mockLogger = mock(Logger.class);
-      SummaryUtils.setLogger(mockLogger); // Inject mock logger
+      logger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(SummaryUtils.class);
+      logAppender = new ListAppender<>();
+      logAppender.start();
+      logger.addAppender(logAppender);
+      logAppender.list.clear(); // Ensure logs are cleared before each test
    }
 
    @AfterEach
    void tearDown() {
-      SummaryUtils.setLogger(LoggerFactory.getLogger(SummaryUtils.class)); // Reset after test
+      logger.detachAppender(logAppender);
    }
 
    @Test
@@ -50,7 +55,11 @@ class SummaryUtilsTest {
       Optional<Map<String, Object>> result = SummaryUtils.getLatestData(data, "day");
 
       assertTrue(result.isEmpty());
-      verify(mockLogger).error("❌ Input data list is null or empty.");
+
+      // Capture log messages
+      boolean logFound = logAppender.list.stream()
+          .anyMatch(event -> event.getFormattedMessage().contains("❌ Input data list is null or empty."));
+      assertTrue(logFound, "Expected log message not found!");
    }
 
    @Test
@@ -58,7 +67,10 @@ class SummaryUtilsTest {
       Optional<Map<String, Object>> result = SummaryUtils.getLatestData(null, "day");
 
       assertTrue(result.isEmpty());
-      verify(mockLogger).error("❌ Input data list is null or empty.");
+
+      boolean logFound = logAppender.list.stream()
+          .anyMatch(event -> event.getFormattedMessage().contains("❌ Input data list is null or empty."));
+      assertTrue(logFound, "Expected log message not found!");
    }
 
    @Test
@@ -68,32 +80,24 @@ class SummaryUtilsTest {
       Optional<Map<String, Object>> result = SummaryUtils.getLatestData(data, "day");
 
       assertTrue(result.isEmpty());
-      verify(mockLogger).error("❌ Missing or null value for column '{}'", "day");
+
+      boolean logFound = logAppender.list.stream()
+          .anyMatch(event -> event.getFormattedMessage().contains("❌ Missing or null value for column 'day'"));
+      assertTrue(logFound, "Expected log message not found!");
    }
 
    @Test
    void givenInvalidDateFormat_whenGetLatestData_thenReturnsEmptyAndLogsError() {
-      // GIVEN data with invalid date format
-      List<Map<String, Object>> data = List.of(
-          Map.of("day", "INVALID-DATE", "value", 100)
-                                              );
+      List<Map<String, Object>> data = List.of(Map.of("day", "INVALID-DATE", "value", 100));
 
-      // Reset the logger to avoid conflicts
-      reset(mockLogger);
-
-      // WHEN calling getLatestData
       Optional<Map<String, Object>> result = SummaryUtils.getLatestData(data, "day");
 
-      // THEN it should return Optional.empty()
       assertTrue(result.isEmpty());
 
-      // Ensure some error was logged
-      verify(mockLogger, atLeastOnce()).error(anyString(), any(), any());
+      boolean logFound = logAppender.list.stream()
+          .anyMatch(event -> event.getFormattedMessage().contains("❌ Error parsing date for column 'day'"));
+      assertTrue(logFound, "Expected log message not found!");
    }
-
-
-
-
 
    @Test
    void givenNullDateValues_whenGetLatestData_thenIgnoresNullsAndFindsLatest() {
