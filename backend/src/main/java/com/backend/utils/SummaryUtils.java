@@ -12,9 +12,14 @@ import java.util.Optional;
 
 public class SummaryUtils {
 
-   private static final Logger logger = LoggerFactory.getLogger(SummaryUtils.class);
+   private static Logger logger = LoggerFactory.getLogger(SummaryUtils.class); // Default logger
 
    private SummaryUtils() {} // Prevent instantiation
+
+   // Allow injecting a mock logger for testing
+   public static void setLogger(Logger testLogger) {
+      logger = testLogger;
+   }
 
    /**
     * Extracts the latest data row based on the given date column.
@@ -24,11 +29,32 @@ public class SummaryUtils {
     * @return The most recent row based on the date column.
     */
    public static Optional<Map<String, Object>> getLatestData(List<Map<String, Object>> rawData, String dateColumn) {
+      if (rawData == null || rawData.isEmpty()) {
+         logger.error("❌ Input data list is null or empty.");
+         return Optional.empty();
+      }
+
       try {
          return rawData.stream()
+             .filter(data -> {
+                if (!data.containsKey(dateColumn) || data.get(dateColumn) == null) {
+                   logger.error("❌ Missing or null value for column '{}'", dateColumn);
+                   return false;
+                }
+                return true;
+             })
+             .filter(data -> {
+                try {
+                   LocalDate.parse(data.get(dateColumn).toString()); // If this fails, we skip the entry
+                   return true;
+                } catch (DateTimeParseException e) {
+                   logger.error("❌ Error parsing date for column '{}': {}", dateColumn, e.getMessage());
+                   return false;
+                }
+             })
              .max(Comparator.comparing(data -> LocalDate.parse(data.get(dateColumn).toString())));
-      } catch (DateTimeParseException | NullPointerException e) {
-         logger.error("❌ Error parsing date for column '{}': {}", dateColumn, e.getMessage());
+      } catch (Exception e) {
+         logger.error("❌ Unexpected error processing column '{}': {}", dateColumn, e.getMessage());
          return Optional.empty();
       }
    }
