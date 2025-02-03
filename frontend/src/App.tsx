@@ -12,7 +12,8 @@ import { Training } from "@/pages/Training/Training.tsx";
 import { Activites } from "@/pages/Activities/Activities.tsx";
 import { Home } from "@/pages/Home/Home.tsx";
 
-import { CurrentDaySummaryProvider } from "@/context/CurrentDaySummaryContext";
+import { CurrentDaySummaryProvider } from "@/context/CurrentDaySummaryContext"
+import { RecentDailySummariesProvider } from "@/context/RecentDailySummariesContext.tsx";
 
 export const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -26,10 +27,14 @@ export const App = () => {
     setTimeout(() => setLoading(false), 1000);
   }, []);
 
+  // TODO:
+  //  Move Routes into correct Context Wrappers & Secure Routes
+
   return loading ? (
     <Loader />
   ) : (
     <>
+      <RecentDailySummariesProvider>
       <CurrentDaySummaryProvider>
       <Routes>
         <Route
@@ -109,6 +114,7 @@ export const App = () => {
         />
       </Routes>
         </CurrentDaySummaryProvider>
+      </RecentDailySummariesProvider>
     </>
   );
 };

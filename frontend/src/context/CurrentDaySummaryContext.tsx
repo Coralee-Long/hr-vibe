@@ -1,11 +1,11 @@
 import { createContext, useContext, useState, ReactNode } from "react";
 import { CurrentDaySummaryDTO } from "@/types/CurrentDaySummary";
-import { mockCurrentDaySummary } from "@/mocks/mockCurrentDaySummary";
+import { mockCurrentDaySummary } from "@/mocks/mockCurrentDaySummary.ts";
 
 // Define the shape of the context
 type CurrentDaySummaryContextType = {
-  summary: CurrentDaySummaryDTO;
-  setSummary: (summary: CurrentDaySummaryDTO) => void;
+  currentDayData: CurrentDaySummaryDTO;
+  setCurrentDayData: (data: CurrentDaySummaryDTO) => void;
 };
 
 // Create the context with default values
@@ -13,10 +13,10 @@ const CurrentDaySummaryContext = createContext<CurrentDaySummaryContextType | un
 
 // Provider component
 export const CurrentDaySummaryProvider = ({ children }: { children: ReactNode }) => {
-  const [summary, setSummary] = useState<CurrentDaySummaryDTO>(mockCurrentDaySummary);
+  const [currentDayData, setCurrentDayData] = useState<CurrentDaySummaryDTO>(mockCurrentDaySummary);
 
   return (
-    <CurrentDaySummaryContext.Provider value={{ summary, setSummary }}>
+    <CurrentDaySummaryContext.Provider value={{ currentDayData, setCurrentDayData }}>
       {children}
     </CurrentDaySummaryContext.Provider>
   );
