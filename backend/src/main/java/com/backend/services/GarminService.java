@@ -87,6 +87,30 @@ public class GarminService {
       return new CurrentDaySummary(null, LocalDate.parse(data.get("day").toString()), mapToBaseSummary(data));
    }
 
+   public void processAndSaveWeeklySummary(String db, String table) {
+      processAndSaveSummary(db, table, this::mapToWeeklySummary, weeklySummaryRepo);
+   }
+
+   private WeeklySummary mapToWeeklySummary(Map<String, Object> data) {
+      return new WeeklySummary(null, LocalDate.parse(data.get("week_start").toString()), mapToBaseSummary(data));
+   }
+
+   public void processAndSaveMonthlySummary(String db, String table) {
+      processAndSaveSummary(db, table, this::mapToMonthlySummary, monthlySummaryRepo);
+   }
+
+   private MonthlySummary mapToMonthlySummary(Map<String, Object> data) {
+      return new MonthlySummary(null, LocalDate.parse(data.get("month_start").toString()), mapToBaseSummary(data));
+   }
+
+   public void processAndSaveYearlySummary(String db, String table) {
+      processAndSaveSummary(db, table, this::mapToYearlySummary, yearlySummaryRepo);
+   }
+
+   private YearlySummary mapToYearlySummary(Map<String, Object> data) {
+      return new YearlySummary(null, LocalDate.parse(data.get("year_start").toString()), mapToBaseSummary(data));
+   }
+
    public void processAndSaveRecentDailySummaries() {
       logger.info("Fetching last 7 days of daily summaries...");
 

@@ -33,12 +33,11 @@ public class GarminSQLiteRepo {
       try (Connection connection = garminDbConfig.getConnection(databaseName)) {
          Statement stmt = connection.createStatement();
          ResultSet rs = stmt.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
-
          while (rs.next()) {
             tables.add(rs.getString("name"));
          }
       } catch (SQLException e) {
-         throw new RuntimeException("Error retrieving table names: " + e.getMessage(), e);
+         System.err.println("❌ Database error: " + e.getMessage());
       }
       return tables;
    }
@@ -51,7 +50,7 @@ public class GarminSQLiteRepo {
          throw new IllegalArgumentException("Invalid table name: " + tableName);
       }
 
-      String query = "SELECT * FROM " + tableName; // Now safe because table name is validated
+      String query = "SELECT * FROM " + databaseName + "." + tableName;// Now safe because table name is validated
 
       try (Connection connection = garminDbConfig.getConnection(databaseName);
            Statement stmt = connection.createStatement();
@@ -118,7 +117,6 @@ public class GarminSQLiteRepo {
     * ✅ Helper method: Ensures the provided table name is valid by checking against a whitelist.
     */
    private boolean isValidTableName(String tableName) {
-      List<String> allowedTables = List.of("daily_summary", "weekly_summary", "monthly_summary"); // Add valid table names here
-      return allowedTables.contains(tableName);
+      return tableName.matches("^[a-zA-Z0-9_]+$"); // Allow all alphanumeric table names with underscores
    }
 }
