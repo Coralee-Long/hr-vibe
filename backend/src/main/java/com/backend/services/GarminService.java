@@ -8,8 +8,7 @@ import com.backend.exceptions.GarminProcessingException;
 import com.backend.models.*;
 import com.backend.repos.MongoDB.*;
 import com.backend.repos.SQL.GarminSQLiteRepo;
-import com.backend.services.ValidationService;
-
+import com.backend.utils.DataParsingUtils;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -51,14 +50,14 @@ public class GarminService {
    }
 
    /**
-    * Generic method to process, validate, and save a summary.
+    * ✅ Generic method to process, validate, and save summaries into MongoDB.
     */
-   protected <T> void processAndSaveSummary(
+   private <T> void processAndSaveSummary(
        String databaseName,
        String tableName,
        Function<Map<String, Object>, T> mapper,
        MongoRepository<T, String> repo
-                                           ) {
+                                         ) {
       logger.info("Fetching data from SQLite: {}, table: {}", databaseName, tableName);
 
       List<Map<String, Object>> rawData;
@@ -77,46 +76,36 @@ public class GarminService {
          throw new GarminProcessingException("No valid data found for table: " + tableName);
       }
 
+      // Ensure correct type inference
       T summary = mapper.apply(latestData.get());
 
       validationService.validate(summary);
-
       repo.save(summary);
+
       logger.info("✅ Successfully saved {} summary for {}", summary.getClass().getSimpleName(), "day");
    }
 
-   public void processAndSaveCurrentDaySummary(String db, String table) {
-      processAndSaveSummary(db, table, this::mapToCurrentDaySummary, currentDaySummaryRepo);
-   }
 
-   private CurrentDaySummary mapToCurrentDaySummary(Map<String, Object> data) {
-      return new CurrentDaySummary(null, LocalDate.parse(data.get("day").toString()), mapToBaseSummary(data));
+   // 🔹 Processing Methods - Now using the `DataParsingUtils` mapping methods
+   public void processAndSaveCurrentDaySummary(String db, String table) {
+      processAndSaveSummary(db, table, DataParsingUtils::mapToCurrentDaySummary, currentDaySummaryRepo);
    }
 
    public void processAndSaveWeeklySummary(String db, String table) {
-      processAndSaveSummary(db, table, this::mapToWeeklySummary, weeklySummaryRepo);
-   }
-
-   private WeeklySummary mapToWeeklySummary(Map<String, Object> data) {
-      return new WeeklySummary(null, LocalDate.parse(data.get("week_start").toString()), mapToBaseSummary(data));
+      processAndSaveSummary(db, table, DataParsingUtils::mapToWeeklySummary, weeklySummaryRepo);
    }
 
    public void processAndSaveMonthlySummary(String db, String table) {
-      processAndSaveSummary(db, table, this::mapToMonthlySummary, monthlySummaryRepo);
-   }
-
-   private MonthlySummary mapToMonthlySummary(Map<String, Object> data) {
-      return new MonthlySummary(null, LocalDate.parse(data.get("month_start").toString()), mapToBaseSummary(data));
+      processAndSaveSummary(db, table, DataParsingUtils::mapToMonthlySummary, monthlySummaryRepo);
    }
 
    public void processAndSaveYearlySummary(String db, String table) {
-      processAndSaveSummary(db, table, this::mapToYearlySummary, yearlySummaryRepo);
+      processAndSaveSummary(db, table, DataParsingUtils::mapToYearlySummary, yearlySummaryRepo);
    }
 
-   private YearlySummary mapToYearlySummary(Map<String, Object> data) {
-      return new YearlySummary(null, LocalDate.parse(data.get("year_start").toString()), mapToBaseSummary(data));
-   }
-
+   /**
+    * ✅ Process and save recent daily summaries (last 7 days).
+    */
    public void processAndSaveRecentDailySummaries() {
       logger.info("Fetching last 7 days of daily summaries...");
 
@@ -129,10 +118,10 @@ public class GarminService {
 
       RecentDailySummaries recentSummary = mapToRecentDailySummaries(last7Days);
 
-      // ✅ Validate before saving
+      // Validate and save
       validationService.validate(recentSummary);
-
       recentDailySummariesRepo.save(recentSummary);
+
       logger.info("✅ Successfully saved RecentDailySummaries for latest day {}", recentSummary.latestDay());
    }
 }

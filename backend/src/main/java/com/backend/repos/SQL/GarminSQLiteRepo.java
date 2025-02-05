@@ -2,14 +2,10 @@ package com.backend.repos.SQL;
 
 import com.backend.config.GarminDatabaseConfig;
 import com.backend.exceptions.GarminDatabaseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Repository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -22,42 +18,56 @@ import java.util.Map;
 @Repository
 public class GarminSQLiteRepo {
 
+   private static final Logger logger = LoggerFactory.getLogger(GarminSQLiteRepo.class);
    private final GarminDatabaseConfig garminDbConfig;
-   private static final String EXPORT_DIR = System.getProperty("user.dir") + "/backend/data/raw_garmin_data/";
 
    public GarminSQLiteRepo(GarminDatabaseConfig garminDbConfig) {
       this.garminDbConfig = garminDbConfig;
    }
 
+   /**
+    * Retrieves all table names from the given SQLite database.
+    * Logs a warning if the database is empty.
+    */
    public List<String> getAllTableNames(String databaseName) {
       List<String> tables = new ArrayList<>();
-      try (Connection connection = garminDbConfig.getConnection(databaseName)) {
-         Statement stmt = connection.createStatement();
-         ResultSet rs = stmt.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'");
+      try (Connection connection = garminDbConfig.getConnection(databaseName);
+           Statement stmt = connection.createStatement();
+           ResultSet rs = stmt.executeQuery("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'")) {
+
          while (rs.next()) {
-            tables.add(rs.getString("name"));
+            String table = rs.getString("name").trim(); // Ensure no spaces
+            tables.add(table);
+            logger.info("✅ Found table: '{}'", table);
          }
       } catch (SQLException e) {
-         throw new GarminDatabaseException("Failed to retrieve table names from database: " + databaseName, e);
+         throw new GarminDatabaseException("❌ Failed to retrieve table names from database: " + databaseName, e);
       }
+
+      logger.info("📌 Final list of tables: {}", tables);
       return tables;
    }
 
+   /**
+    * Fetches all rows from a specified SQLite table.
+    * Ensures table name is valid and returns an empty list if no data is found.
+    */
    public List<Map<String, Object>> fetchTableData(String databaseName, String tableName) {
       List<Map<String, Object>> result = new ArrayList<>();
 
-      // ✅ Validate table name against a whitelist before using it in the query
+      // ✅ Validate the table name before querying
       if (!isValidTableName(tableName)) {
-         throw new IllegalArgumentException("Invalid table name: " + tableName);
+         throw new IllegalArgumentException("❌ Invalid table name: " + tableName);
       }
 
-      String query = "SELECT * FROM " + databaseName + "." + tableName;// Now safe because table name is validated
+      String query = "SELECT * FROM " + tableName;
 
       try (Connection connection = garminDbConfig.getConnection(databaseName);
            Statement stmt = connection.createStatement();
            ResultSet rs = stmt.executeQuery(query)) {
 
          int columnCount = rs.getMetaData().getColumnCount();
+
          while (rs.next()) {
             Map<String, Object> row = new HashMap<>();
             for (int i = 1; i <= columnCount; i++) {
@@ -65,59 +75,35 @@ public class GarminSQLiteRepo {
             }
             result.add(row);
          }
+
       } catch (SQLException e) {
-         throw new RuntimeException("Error querying table: " + e.getMessage(), e);
+         throw new GarminDatabaseException("❌ Error querying table '" + tableName + "' in database '" + databaseName + "': " + e.getMessage(), e);
       }
+
+      if (result.isEmpty()) {
+         logger.warn("⚠️ No data found in table '{}' from database '{}'", tableName, databaseName);
+      } else {
+         logger.info("✅ Retrieved {} rows from table '{}' in database '{}'", result.size(), tableName, databaseName);
+      }
+
       return result;
    }
 
-   public void saveTableAsJson(String databaseName, String tableName) {
-      List<Map<String, Object>> tableData = fetchTableData(databaseName, tableName);
-
-      if (tableData.isEmpty()) {
-         System.out.println("No data found for table: " + tableName);
-         return;
-      }
-
-      try {
-         // Create folder for database
-         Path databaseFolder = Paths.get(EXPORT_DIR, databaseName.replace(".db", ""));
-         if (Files.notExists(databaseFolder)) {
-            Files.createDirectories(databaseFolder);
-         }
-
-         // Define JSON file path
-         File jsonFile = new File(databaseFolder.toFile(), tableName + ".json");
-
-         // Convert data to JSON and save
-         ObjectMapper objectMapper = new ObjectMapper();
-         objectMapper.writerWithDefaultPrettyPrinter().writeValue(jsonFile, tableData);
-
-         System.out.println("✅ Table " + tableName + " from " + databaseName + " saved as JSON in: " + databaseFolder);
-      } catch (IOException e) {
-         throw new RuntimeException("Error saving table as JSON: " + e.getMessage(), e);
-      }
-   }
-
-   public List<String> saveAllTablesAsJson(String databaseName) {
-      List<String> tableNames = getAllTableNames(databaseName);
-      List<String> savedTables = new ArrayList<>();
-
-      for (String tableName : tableNames) {
-         try {
-            saveTableAsJson(databaseName, tableName);
-            savedTables.add(tableName);
-         } catch (Exception e) {
-            System.err.println("❌ Failed to save table: " + tableName + " from " + databaseName + ". Error: " + e.getMessage());
-         }
-      }
-      return savedTables;
-   }
-
    /**
-    * ✅ Helper method: Ensures the provided table name is valid by checking against a whitelist.
+    * Ensures the provided table name is valid (only allows alphanumeric and underscores).
     */
    private boolean isValidTableName(String tableName) {
-      return tableName.matches("^[a-zA-Z0-9_]+$"); // Allow all alphanumeric table names with underscores
+      tableName = tableName.trim(); // 🔹 Ensure no leading/trailing spaces
+      logger.info("🔍 Checking trimmed table name: '{}'", tableName);
+
+      boolean isValid = tableName.matches("^[a-zA-Z0-9_]+$");
+
+      if (!isValid) {
+         logger.error("❌ Invalid table name attempted: '{}'", tableName);
+      } else {
+         logger.info("✅ Valid table name: '{}'", tableName);
+      }
+
+      return isValid;
    }
 }

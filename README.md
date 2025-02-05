@@ -148,5 +148,7 @@ Since automation is **not yet implemented**, we manually trigger syncing.
 
 ---
 
-
-
+## ⭐️ **Updating Garmin Data Manually**
+- **Make sure to be in the `GarminDB` Project folder.
+- **Run the command: `garmindb_cli.py --all --download --import --analyze --latest`
+- 

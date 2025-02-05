@@ -1,10 +1,9 @@
 package com.backend.utils;
 
 import com.backend.exceptions.GarminDataParsingException;
-import com.backend.models.BaseSummary;
-import com.backend.models.CurrentDaySummary;
-import com.backend.models.RecentDailySummaries;
+import com.backend.models.*;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -147,6 +146,50 @@ public class DataParsingUtils {
           getString(data, "intensity_time"),
           getString(data, "moderate_activity_time"),
           getString(data, "vigorous_activity_time")
+      );
+   }
+
+   /**
+    * ✅ Converts SQLite row data into `CurrentDaySummary` object.
+    */
+   public static CurrentDaySummary mapToCurrentDaySummary(Map<String, Object> data) {
+      return new CurrentDaySummary(
+          null,
+          LocalDate.parse(data.get("day").toString()),
+          mapToBaseSummary(data)
+      );
+   }
+
+   /**
+    * ✅ Converts SQLite row data into `WeeklySummary` object.
+    */
+   public static WeeklySummary mapToWeeklySummary(Map<String, Object> data) {
+      return new WeeklySummary(
+          null,
+          LocalDate.parse(data.get("week_start").toString()),
+          mapToBaseSummary(data)
+      );
+   }
+
+   /**
+    * ✅ Converts SQLite row data into `MonthlySummary` object.
+    */
+   public static MonthlySummary mapToMonthlySummary(Map<String, Object> data) {
+      return new MonthlySummary(
+          null,
+          LocalDate.parse(data.get("month_start").toString()),
+          mapToBaseSummary(data)
+      );
+   }
+
+   /**
+    * ✅ Converts SQLite row data into `YearlySummary` object.
+    */
+   public static YearlySummary mapToYearlySummary(Map<String, Object> data) {
+      return new YearlySummary(
+          null,
+          LocalDate.parse(data.get("year_start").toString()),
+          mapToBaseSummary(data)
       );
    }
 

@@ -1,50 +1,18 @@
 package com.backend.controllers;
 
-import com.backend.repos.SQL.GarminSQLiteRepo;
 import com.backend.services.GarminService;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/garmin")
 public class GarminController {
 
    private final GarminService garminService;
-   private final GarminSQLiteRepo garminSQLiteRepo;
 
-   public GarminController (GarminService garminService, GarminSQLiteRepo garminSQLiteRepo) {
+   public GarminController (GarminService garminService) {
       this.garminService = garminService;
-      this.garminSQLiteRepo = garminSQLiteRepo;
-   }
-
-   /**
-    * Retrieves all table names from the specified SQLite database.
-    * Useful for debugging and verifying available tables.
-    */
-   @GetMapping("/table-names")
-   public Map<String, Object> getTableNames(@RequestParam String databaseName) {
-      List<String> tableNames = garminSQLiteRepo.getAllTableNames(databaseName);
-      return Map.of("tables", tableNames);
-   }
-
-   /**
-    * Saves a specified table from SQLite as a JSON file for debugging purposes.
-    */
-   @GetMapping("/save-table")
-   public String saveTable(@RequestParam String databaseName, @RequestParam String tableName) {
-      garminSQLiteRepo.saveTableAsJson(databaseName, tableName);
-      return "Table '" + tableName + "' from '" + databaseName + "' has been saved as JSON.";
-   }
-
-   /**
-    * Saves all tables from SQLite as JSON files for debugging.
-    */
-   @GetMapping("/save-all-tables")
-   public Map<String, Object> saveAllTables(@RequestParam String databaseName) {
-      List<String> savedTables = garminSQLiteRepo.saveAllTablesAsJson(databaseName);
-      return Map.of("message", "All tables saved successfully", "tables", savedTables);
    }
 
    /**
@@ -87,7 +55,7 @@ public class GarminController {
     * Processes and saves the recent daily summaries (last 7 days) from MongoDB.
     */
    @PostMapping("/process/recent-daily-summaries")
-   public String processRecentDailySummaries() {
+   public String processAndSaveRecentDailySummaries() {
       garminService.processAndSaveRecentDailySummaries();
       return "Processed and saved RecentDailySummaries.";
    }
