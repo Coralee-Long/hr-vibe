@@ -6,6 +6,7 @@ import { Sleep } from "@/components/StatsCards/DashMetrics/Sleep/Sleep.tsx";
 import { IntensityMinutes } from "@/components/StatsCards/DashMetrics/IntensityMiniutes/IntensityMinutes.tsx";
 
 export const DashMetrics = () => {
+
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">

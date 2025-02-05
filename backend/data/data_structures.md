@@ -2,222 +2,225 @@
 
 | **Model Name** | **Purpose** | **Data Source** | **Stored in MongoDB as** |
 |---------------|------------|----------------|--------------------------|
+| `BaseSummary` | Embedded summary model for all timeframes | - | - |
 | `CurrentDaySummary` | Latest available day’s data | `days_summary` | `current_day_summaries` |
-| `RecentDailySummaries` | Last 7 days of daily data (mini-graphs) | `days_summary` (last 7 days) | `recent_daily_summaries` |
+| `RecentDailySummaries` | Last 7 days of daily data (pre-processed for mini-graphs) | `days_summary` (last 7 days) | `recent_daily_summaries` |
 | `WeeklySummary` | Aggregated weekly data | `weeks_summary` | `weekly_summaries` |
 | `MonthlySummary` | Aggregated monthly data | `months_summary` | `monthly_summaries` |
 | `YearlySummary` | Aggregated yearly data | `years_summary` | `yearly_summaries` |
 
 ## **📌 Model Structures**
-### **1️⃣ `RecentDailySummaries` (Last 7 Days for Mini-Graphs)**
-- Stores **an array of the last 7 `CurrentDaySummary` entries**.
-- Used for **dashboard mini-graphs**.
+
+### **1️⃣ `BaseSummary` (Embedded Summary Model)**
+- Used as a shared model for `CurrentDaySummary`, `WeeklySummary`, `MonthlySummary`, and `YearlySummary`.
 
 ```java
-@Document(collection = "recent_daily_summaries") // Stores the last 7 days of daily data
-public record RecentDailySummaries(
-    @Id String id, // Unique MongoDB ID
-    List<CurrentDaySummary> last7Days // Array of daily summaries (latest 7 days)
+@Document // This will be embedded in other summary documents
+public record BaseSummary(
+
+    Integer hrMin, // Min heart rate
+    Integer hrMax, // Max heart rate
+    Integer hrAvg, // Avg heart rate
+
+    Integer rhrMin, // Min resting heart rate
+    Integer rhrMax, // Max resting heart rate
+    Integer rhrAvg, // Avg resting heart rate
+
+    Integer inactiveHrMin, // Min inactive heart rate
+    Integer inactiveHrMax, // Max inactive heart rate
+    Integer inactiveHrAvg, // Avg inactive heart rate
+
+    Integer caloriesAvg, // Avg daily calories burned
+    Integer caloriesGoal, // Target calorie burn goal
+    Integer caloriesBmrAvg, // Avg Basal Metabolic Rate (BMR)
+    Integer caloriesConsumedAvg, // Avg calories consumed
+    Integer caloriesActiveAvg, // Avg active calories burned
+    Integer activitiesCalories, // Total calories burned in activities
+
+    Double weightMin, // Min weight recorded
+    Double weightMax, // Max weight recorded
+    Double weightAvg, // Avg weight recorded
+
+    Integer hydrationGoal, // Target hydration intake (ml)
+    Integer hydrationIntake, // Total hydration intake (ml)
+    Integer hydrationAvg, // Avg daily hydration intake
+    Integer sweatLoss, // Total sweat loss (ml)
+    Integer sweatLossAvg, // Avg sweat loss (ml)
+
+    Integer bbMin, // Min body battery
+    Integer bbMax, // Max body battery
+    Integer stressAvg, // Avg stress level
+
+    Integer rrMin, // Min respiration rate (RR)
+    Integer rrMax, // Max respiration rate (RR)
+    Integer rrWakingAvg, // Avg waking respiration rate (RR)
+
+    String sleepMin, // Min sleep duration (HH:MM:SS)
+    String sleepMax, // Max sleep duration (HH:MM:SS)
+    String sleepAvg, // Avg sleep duration (HH:MM:SS)
+
+    String remSleepMin, // Min REM sleep duration (HH:MM:SS)
+    String remSleepMax, // Max REM sleep duration (HH:MM:SS)
+    String remSleepAvg, // Avg REM sleep duration (HH:MM:SS)
+
+    Integer spo2Min, // Min SpO2
+    Integer spo2Avg, // Avg SpO2
+
+    Integer stepsGoal, // Target steps goal
+    Integer steps, // Total steps taken
+    Integer floorsGoal, // Target floors climbed
+    Integer floors, // Total floors climbed
+
+    Integer activities, // Total logged activities
+    Double activitiesDistance, // Total distance traveled (km)
+
+    String intensityTimeGoal, // Total intensity time goal (HH:MM:SS)
+    String intensityTime, // Total intensity minutes (HH:MM:SS)
+    String moderateActivityTime, // Total time in moderate activity (HH:MM:SS)
+    String vigorousActivityTime // Total time in vigorous activity (HH:MM:SS)
 ) {}
 ```
 
 ---
 
-### **2️⃣ `WeeklySummary` (One Week Aggregation)**
-- Stores **one aggregated week of data**.
-- Uses `firstDay` as the reference point (e.g., `"2024-01-01"`).
+### **2️⃣ `CurrentDaySummary` (Latest Available Day’s Data)**
+- Stores **a single day's health metrics**.
 
+```java
+@Document(collection = "current_day_summaries") // Stores the latest day's summary
+public record CurrentDaySummary(
+    @Id String id, // Unique MongoDB ID
+    LocalDate day, // Specific day for the summary (YYYY-MM-DD)
+    BaseSummary summary // Embedded summary data
+) {}
+```
+
+---
+
+### **3️⃣ `RecentDailySummaries` (Last 7 Days Pre-Processed for Mini-Graphs)**
+- Stores **processed arrays** for the last 7 days instead of individual `CurrentDaySummary` objects.
+- Used for **trend graphs and visualizations** in the frontend.
+
+```java
+@Document(collection = "recent_daily_summaries") // Stores pre-processed 7-day history
+public record RecentDailySummaries(
+    @Id String id, // Unique MongoDB ID
+    LocalDate latestDay, // Most recent date in the dataset
+
+    List<Integer> hrMin, // Last 7 days of min heart rate
+    List<Integer> hrMax, // Last 7 days of max heart rate
+    List<Integer> hrAvg, // Last 7 days of avg heart rate
+
+    List<Integer> rhrMin, // Last 7 days of min resting heart rate
+    List<Integer> rhrMax, // Last 7 days of max resting heart rate
+    List<Integer> rhrAvg, // Last 7 days of avg resting heart rate
+
+    List<Integer> inactiveHrMin, // Last 7 days of min inactive heart rate
+    List<Integer> inactiveHrMax, // Last 7 days of max inactive heart rate
+    List<Integer> inactiveHrAvg, // Last 7 days of avg inactive heart rate
+
+    List<Integer> caloriesAvg, // Last 7 days of avg daily calories burned
+    List<Integer> caloriesGoal, // Last 7 days of calorie burn goals
+    List<Integer> caloriesBmrAvg, // Last 7 days of avg BMR
+    List<Integer> caloriesConsumedAvg, // Last 7 days of avg calories consumed 
+    List<Integer> caloriesActiveAvg, // Last 7 days of avg active calories burned
+    List<Integer> activitiesCalories, // Last 7 days of calories burned in activities 
+
+    List<Double> weightMin, // Last 7 days of min weight recorded 
+    List<Double> weightMax, // Last 7 days of max weight recorded 
+    List<Double> weightAvg, // Last 7 days of avg weight recorded 
+
+    List<Integer> hydrationGoal, // Last 7 days of hydration goals (ml)
+    List<Integer> hydrationIntake, // Last 7 days of total hydration intake (ml) 
+    List<Integer> hydrationAvg, // Last 7 days of avg daily hydration intake 
+    List<Integer> sweatLoss, // Last 7 days of total sweat loss (ml) 
+    List<Integer> sweatLossAvg, // Last 7 days of avg sweat loss (ml) 
+
+    List<Integer> bbMin, // Last 7 days of min body battery
+    List<Integer> bbMax, // Last 7 days of max body battery
+    List<Integer> stressAvg, // Last 7 days of avg stress level
+
+    List<Integer> rrMin, // Last 7 days of min respiration rate (RR)
+    List<Integer> rrMax, // Last 7 days of max respiration rate (RR)
+    List<Integer> rrWakingAvg, // Last 7 days of avg waking respiration rate (RR)
+
+    List<String> sleepMin, // Last 7 days of min sleep duration (HH:MM:SS)
+    List<String> sleepMax, // Last 7 days of max sleep duration (HH:MM:SS)
+    List<String> sleepAvg, // Last 7 days of avg sleep duration (HH:MM:SS)
+
+    List<String> remSleepMin, // Last 7 days of min REM sleep duration (HH:MM:SS)
+    List<String> remSleepMax, // Last 7 days of max REM sleep duration (HH:MM:SS)
+    List<String> remSleepAvg, // Last 7 days of avg REM sleep duration (HH:MM:SS)
+
+    List<Integer> spo2Min, // Last 7 days of min SpO2 
+    List<Integer> spo2Avg, // Last 7 days of avg SpO2 
+
+    List<Integer> stepsGoal, // Last 7 days of step goals
+    List<Integer> steps, // Last 7 days of steps taken
+    List<Integer> floorsGoal, // Last 7 days of floors climbed goals
+    List<Integer> floors, // Last 7 days of floors climbed
+
+    List<Integer> activities, // Last 7 days of logged activities
+    List<Double> activitiesDistance, // Last 7 days of total distance traveled (km) (nullable)
+
+    List<String> intensityTimeGoal, // Last 7 days of total intensity time goal (HH:MM:SS)
+    List<String> intensityTime, // Last 7 days of total intensity minutes (HH:MM:SS)
+    List<String> moderateActivityTime, // Last 7 days of total time in moderate activity (HH:MM:SS)
+    List<String> vigorousActivityTime // Last 7 days of total time in vigorous activity (HH:MM:SS)
+) {}
+```
+
+---
+
+### **4️⃣ `WeeklySummary` (One Week Aggregation)**
 ```java
 @Document(collection = "weekly_summaries") // Stores weekly aggregated data
 public record WeeklySummary(
     @Id String id, // Unique MongoDB ID
-    LocalDate firstDay, // Start date of the week (e.g., 2024-01-01)
-
-    Double hrMax, // Maximum heart rate recorded during the week
-    Double caloriesActiveAvg, // Average active calories burned
-    Double hydrationIntake, // Total hydration intake (ml)
-    String remSleepMax, // Maximum REM sleep duration (HH:MM:SS)
-    String intensityTimeGoal, // Weekly intensity time goal (HH:MM:SS)
-    Double caloriesAvg, // Average daily calories burned
-    Double hydrationAvg, // Average daily hydration intake
-    Integer caloriesGoal, // Weekly calorie burn goal
-    Double sweatLoss, // Total sweat loss during the week
-    
-    Double rhrMax, // Maximum resting heart rate
-    Double inactiveHrAvg, // Weekly average inactive heart rate
-    Double inactiveHrMin, // Weekly minimum inactive heart rate
-    Integer stepsGoal, // Weekly step goal
-    Double caloriesBmrAvg, // Weekly average Basal Metabolic Rate (BMR)
-    Double floors, // Total floors climbed
-    Double caloriesConsumedAvg, // Weekly average calories consumed
-    Integer hydrationGoal, // Weekly hydration goal (ml)
-    
-    String remSleepAvg, // Weekly average REM sleep duration (HH:MM:SS)
-    String remSleepMin, // Weekly minimum REM sleep duration (HH:MM:SS)
-    Integer stressAvg, // Weekly average stress level
-    Double rrMax, // Maximum respiration rate (RR)
-    Integer bbMin, // Minimum body battery during the week
-    Double inactiveHrMax, // Maximum inactive heart rate
-    Double weightMin, // Minimum weight recorded in the week
-    Double sweatLossAvg, // Average sweat loss (ml)
-
-    String sleepAvg, // Weekly average sleep duration (HH:MM:SS)
-    String sleepMin, // Weekly minimum sleep duration (HH:MM:SS)
-    Double rrMin, // Minimum respiration rate (RR)
-    Integer bbMax, // Maximum body battery during the week
-    Double spo2Avg, // Weekly average SpO2 (oxygen saturation %)
-    Double spo2Min, // Weekly minimum SpO2
-    Double weightAvg, // Weekly average weight recorded
-    Double activitiesDistance, // Total distance traveled in activities (km)
-    
-    Integer steps, // Total steps taken during the week
-    Double rrWakingAvg, // Weekly average waking respiration rate (RR)
-    Double floorsGoal, // Weekly floors goal
-    Double weightMax, // Maximum weight recorded
-    Double hrAvg, // Weekly average heart rate
-    Double hrMin, // Weekly minimum heart rate
-    String vigorousActivityTime, // Weekly total time in vigorous activity (HH:MM:SS)
-    
-    Integer activities, // Total number of activities logged
-    String moderateActivityTime, // Weekly total time in moderate activity (HH:MM:SS)
-    String intensityTime, // Weekly total intensity minutes (HH:MM:SS)
-    Double rhrAvg, // Weekly average resting heart rate
-    Double rhrMin, // Weekly minimum resting heart rate
-    String sleepMax, // Maximum sleep duration during the week (HH:MM:SS)
-    Double activitiesCalories // Total calories burned during activities
+    LocalDate firstDay, // Start date of the week (YYYY-MM-DD)
+    BaseSummary summary // Embedded summary data
 ) {}
 ```
 
 ---
 
-### **3️⃣ `MonthlySummary` (One Month Aggregation)**
-- Stores **one aggregated month of data**.
-- Uses `firstDay` as the reference point (always `YYYY-MM-01`).
-
+### **5️⃣ `MonthlySummary` (One Month Aggregation)**
 ```java
 @Document(collection = "monthly_summaries") // Stores monthly aggregated data
 public record MonthlySummary(
     @Id String id, // Unique MongoDB ID
     LocalDate firstDay, // First day of the month (YYYY-MM-01)
-
-    Double hrMax, // Maximum heart rate recorded during the month
-    Double caloriesActiveAvg, // Average active calories burned
-    Double hydrationIntake, // Total hydration intake (ml)
-    String remSleepMax, // Maximum REM sleep duration (HH:MM:SS)
-    String intensityTimeGoal, // Monthly intensity time goal (HH:MM:SS)
-    Double caloriesAvg, // Average daily calories burned
-    Double hydrationAvg, // Average daily hydration intake
-    Integer caloriesGoal, // Monthly calorie burn goal
-    Double sweatLoss, // Total sweat loss during the month
-
-    Double rhrMax, // Maximum resting heart rate
-    Double inactiveHrAvg, // Monthly average inactive heart rate
-    Double inactiveHrMin, // Monthly minimum inactive heart rate
-    Integer stepsGoal, // Monthly step goal
-    Double caloriesBmrAvg, // Monthly average Basal Metabolic Rate (BMR)
-    Double floors, // Total floors climbed
-    Double caloriesConsumedAvg, // Monthly average calories consumed
-    Integer hydrationGoal, // Monthly hydration goal (ml)
-
-    String remSleepAvg, // Monthly average REM sleep duration (HH:MM:SS)
-    String remSleepMin, // Monthly minimum REM sleep duration (HH:MM:SS)
-    Integer stressAvg, // Monthly average stress level
-    Double rrMax, // Maximum respiration rate (RR)
-    Integer bbMin, // Minimum body battery during the month
-    Double inactiveHrMax, // Maximum inactive heart rate
-    Double weightMin, // Minimum weight recorded in the month
-    Double sweatLossAvg, // Average sweat loss (ml)
-
-    String sleepAvg, // Monthly average sleep duration (HH:MM:SS)
-    String sleepMin, // Monthly minimum sleep duration (HH:MM:SS)
-    Double rrMin, // Minimum respiration rate (RR)
-    Integer bbMax, // Maximum body battery during the month
-    Double spo2Avg, // Monthly average SpO2 (oxygen saturation %)
-    Double spo2Min, // Monthly minimum SpO2
-    Double weightAvg, // Monthly average weight recorded
-    Double activitiesDistance, // Total distance traveled in activities (km)
-
-    Integer steps, // Total steps taken during the month
-    Double rrWakingAvg, // Monthly average waking respiration rate (RR)
-    Double floorsGoal, // Monthly floors goal
-    Double weightMax, // Maximum weight recorded
-    Double hrAvg, // Monthly average heart rate
-    Double hrMin, // Monthly minimum heart rate
-    String vigorousActivityTime, // Monthly total time in vigorous activity (HH:MM:SS)
-
-    Integer activities, // Total number of activities logged
-    String moderateActivityTime, // Monthly total time in moderate activity (HH:MM:SS)
-    String intensityTime, // Monthly total intensity minutes (HH:MM:SS)
-    Double rhrAvg, // Monthly average resting heart rate
-    Double rhrMin, // Monthly minimum resting heart rate
-    String sleepMax, // Maximum sleep duration during the month (HH:MM:SS)
-    Double activitiesCalories // Total calories burned during activities
+    BaseSummary summary // Embedded summary data
 ) {}
 ```
 
 ---
 
-### **4️⃣ `YearlySummary` (One Year Aggregation)**
-- Stores **one aggregated year of data**.
-- Uses `firstDay` as the reference point (always `YYYY-01-01`).
-
+### **6️⃣ `YearlySummary` (One Year Aggregation)**
 ```java
 @Document(collection = "yearly_summaries") // Stores yearly aggregated data
 public record YearlySummary(
     @Id String id, // Unique MongoDB ID
     LocalDate firstDay, // First day of the year (YYYY-01-01)
-
-    Double hrMax, // Maximum heart rate recorded during the year
-    Double caloriesActiveAvg, // Average active calories burned
-    Double hydrationIntake, // Total hydration intake (ml)
-    String remSleepMax, // Maximum REM sleep duration (HH:MM:SS)
-    String intensityTimeGoal, // Yearly intensity time goal (HH:MM:SS)
-    Double caloriesAvg, // Average daily calories burned
-    Double hydrationAvg, // Average daily hydration intake
-    Integer caloriesGoal, // Yearly calorie burn goal
-    Double sweatLoss, // Total sweat loss during the year
-
-    Double rhrMax, // Maximum resting heart rate
-    Double inactiveHrAvg, // Yearly average inactive heart rate
-    Double inactiveHrMin, // Yearly minimum inactive heart rate
-    Integer stepsGoal, // Yearly step goal
-    Double caloriesBmrAvg, // Yearly average Basal Metabolic Rate (BMR)
-    Double floors, // Total floors climbed
-    Double caloriesConsumedAvg, // Yearly average calories consumed
-    Integer hydrationGoal, // Yearly hydration goal (ml)
-
-    String remSleepAvg, // Yearly average REM sleep duration (HH:MM:SS)
-    String remSleepMin, // Yearly minimum REM sleep duration (HH:MM:SS)
-    Integer stressAvg, // Yearly average stress level
-    Double rrMax, // Maximum respiration rate (RR)
-    Integer bbMin, // Minimum body battery during the year
-    Double inactiveHrMax, // Maximum inactive heart rate
-    Double weightMin, // Minimum weight recorded in the year
-    Double sweatLossAvg, // Average sweat loss (ml)
-
-    String sleepAvg, // Yearly average sleep duration (HH:MM:SS)
-    String sleepMin, // Yearly minimum sleep duration (HH:MM:SS)
-    Double rrMin, // Minimum respiration rate (RR)
-    Integer bbMax, // Maximum body battery during the year
-    Double spo2Avg, // Yearly average SpO2 (oxygen saturation %)
-    Double spo2Min, // Yearly minimum SpO2
-    Double weightAvg, // Yearly average weight recorded
-    Double activitiesDistance, // Total distance traveled in activities (km)
-
-    Integer steps, // Total steps taken during the year
-    Double rrWakingAvg, // Yearly average waking respiration rate (RR)
-    Double floorsGoal, // Yearly floors goal
-    Double weightMax, // Maximum weight recorded
-    Double hrAvg, // Yearly average heart rate
-    Double hrMin, // Yearly minimum heart rate
-    String vigorousActivityTime, // Yearly total time in vigorous activity (HH:MM:SS)
-
-    Integer activities, // Total number of activities logged
-    String moderateActivityTime, // Yearly total time in moderate activity (HH:MM:SS)
-    String intensityTime, // Yearly total intensity minutes (HH:MM:SS)
-    Double rhrAvg, // Yearly average resting heart rate
-    Double rhrMin, // Yearly minimum resting heart rate
-    String sleepMax, // Maximum sleep duration during the year (HH:MM:SS)
-    Double activitiesCalories // Total calories burned during activities
+    BaseSummary summary // Embedded summary data
 ) {}
 ```
+
+---
+
+## **📌 Key Changes & Improvements**
+✅ **Pre-Processed Mini-Graph Data**: `RecentDailySummaries` now stores **arrays** instead of raw `CurrentDaySummary` objects.
+✅ **Consistent Summary Models**: `WeeklySummary`, `MonthlySummary`, and `YearlySummary` use **`BaseSummary`** to avoid duplication.
+✅ **Optimized for Fast Retrieval**: Data is **pre-processed before saving to MongoDB**, reducing query overhead at runtime.
+
+---
+
+## **📌 Next Steps**
+- Implement **DTOs with validation** for all summaries.
+- Develop **service logic** to:
+    1. Fetch the last 7 `CurrentDaySummary` entries.
+    2. Process & store them in `RecentDailySummaries`.
+    3. Generate aggregated data for Daily, Weekly, Monthly, and Yearly 
+       summaries.
+- Set up **API endpoints** for fetching summary data.
+
