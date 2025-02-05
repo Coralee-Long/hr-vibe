@@ -26,17 +26,17 @@ import static org.mockito.Mockito.*;
 
  * **Table of Contents:**
 
- * 🔹 **getAllTableNames(String databaseName)**
+ * 1️⃣ **getAllTableNames(String databaseName)**
  *    - ✅ Returns a valid list of table names when the database contains tables.
  *    - ❌ Throws `GarminDatabaseException` when database query fails.
 
- * 🔹 **saveTableAsJson(String databaseName, String tableName)**
+ * 2️⃣ **saveTableAsJson(String databaseName, String tableName)**
  *    - ✅ Successfully writes table data to a JSON file.
  *    - ❌ Logs a warning and skips file creation when table is empty.
  *    - ❌ Throws `GarminDatabaseException` if fetching data fails.
  *    - ❌ Throws `GarminExportException` if file writing fails.
 
- * 🔹 **saveAllTablesAsJson(String databaseName)**
+ * 3️⃣ **saveAllTablesAsJson(String databaseName)**
  *    - ✅ Successfully exports multiple tables.
  *    - ❌ Logs a warning and returns an empty list when there are no tables.
  *    - ❌ Skips problematic tables and logs errors without interrupting execution.

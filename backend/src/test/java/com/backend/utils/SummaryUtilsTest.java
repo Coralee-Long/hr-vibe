@@ -14,6 +14,18 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * 📌 SummaryUtilsTest - Unit tests for SummaryUtils.
+
+ * 1️⃣ Tests for getLatestData():
+ *    - ✅ givenValidData_whenGetLatestData_thenReturnsLatestEntry
+ *    - ❌ givenEmptyList_whenGetLatestData_thenReturnsEmptyAndLogsError
+ *    - ❌ givenNullList_whenGetLatestData_thenReturnsEmptyAndLogsError
+ *    - ❌ givenMissingDateColumn_whenGetLatestData_thenReturnsEmptyAndLogsError
+ *    - ❌ givenInvalidDateFormat_whenGetLatestData_thenReturnsEmptyAndLogsError
+ *    - ✅ givenNullDateValues_whenGetLatestData_thenIgnoresNullsAndFindsLatest
+ *    - ❌ givenExceptionDuringProcessing_whenGetLatestData_thenReturnsEmptyAndLogsUnexpectedError
+ */
 
 class SummaryUtilsTest {
 
@@ -26,7 +38,7 @@ class SummaryUtilsTest {
       logAppender = new ListAppender<>();
       logAppender.start();
       logger.addAppender(logAppender);
-      logAppender.list.clear(); // Ensure logs are cleared before each test
+      logAppender.list.clear(); // Clear logs before each test
    }
 
    @AfterEach
@@ -34,6 +46,9 @@ class SummaryUtilsTest {
       logger.detachAppender(logAppender);
    }
 
+   /**
+    * ✅ Test Case: givenValidData_whenGetLatestData_thenReturnsLatestEntry
+    */
    @Test
    void givenValidData_whenGetLatestData_thenReturnsLatestEntry() {
       List<Map<String, Object>> data = List.of(
@@ -49,6 +64,9 @@ class SummaryUtilsTest {
       assertEquals(110, result.get().get("value"));
    }
 
+   /**
+    * ❌ Test Case: givenEmptyList_whenGetLatestData_thenReturnsEmptyAndLogsError
+    */
    @Test
    void givenEmptyList_whenGetLatestData_thenReturnsEmptyAndLogsError() {
       List<Map<String, Object>> data = List.of();
@@ -62,6 +80,9 @@ class SummaryUtilsTest {
       assertTrue(logFound, "Expected log message not found!");
    }
 
+   /**
+    * ❌ Test Case: givenNullList_whenGetLatestData_thenReturnsEmptyAndLogsError
+    */
    @Test
    void givenNullList_whenGetLatestData_thenReturnsEmptyAndLogsError() {
       Optional<Map<String, Object>> result = SummaryUtils.getLatestData(null, "day");
@@ -73,6 +94,9 @@ class SummaryUtilsTest {
       assertTrue(logFound, "Expected log message not found!");
    }
 
+   /**
+    * ❌ Test Case: givenMissingDateColumn_whenGetLatestData_thenReturnsEmptyAndLogsError
+    */
    @Test
    void givenMissingDateColumn_whenGetLatestData_thenReturnsEmptyAndLogsError() {
       List<Map<String, Object>> data = List.of(Map.of("value", 100));
@@ -86,6 +110,9 @@ class SummaryUtilsTest {
       assertTrue(logFound, "Expected log message not found!");
    }
 
+   /**
+    * ❌ Test Case: givenInvalidDateFormat_whenGetLatestData_thenReturnsEmptyAndLogsError
+    */
    @Test
    void givenInvalidDateFormat_whenGetLatestData_thenReturnsEmptyAndLogsError() {
       List<Map<String, Object>> data = List.of(Map.of("day", "INVALID-DATE", "value", 100));
@@ -99,6 +126,9 @@ class SummaryUtilsTest {
       assertTrue(logFound, "Expected log message not found!");
    }
 
+   /**
+    * ✅ Test Case: givenNullDateValues_whenGetLatestData_thenIgnoresNullsAndFindsLatest
+    */
    @Test
    void givenNullDateValues_whenGetLatestData_thenIgnoresNullsAndFindsLatest() {
       List<Map<String, Object>> data = List.of(
@@ -112,5 +142,32 @@ class SummaryUtilsTest {
       assertTrue(result.isPresent());
       assertEquals("2025-01-31", result.get().get("day"));
       assertEquals(110, result.get().get("value"));
+   }
+
+   /**
+    * ❌ Test Case: givenExceptionDuringProcessing_whenGetLatestData_thenReturnsEmptyAndLogsUnexpectedError
+    */
+   @Test
+   void givenExceptionDuringProcessing_whenGetLatestData_thenReturnsEmptyAndLogsUnexpectedError() {
+      // GIVEN a map that has a key "day" but throws an exception when get("day") is called
+      Map<String, Object> faultyMap = new HashMap<>() {
+         @Override
+         public Object get(Object key) {
+            if ("day".equals(key)) {
+               throw new RuntimeException("Forced exception");
+            }
+            return super.get(key);
+         }
+      };
+      faultyMap.put("day", "dummyValue"); // Ensure containsKey("day") returns true
+      faultyMap.put("value", 123);
+      List<Map<String, Object>> data = List.of(faultyMap);
+
+      Optional<Map<String, Object>> result = SummaryUtils.getLatestData(data, "day");
+      assertTrue(result.isEmpty());
+
+      boolean logFound = logAppender.list.stream()
+          .anyMatch(event -> event.getFormattedMessage().contains("❌ Unexpected error processing column 'day'"));
+      assertTrue(logFound, "Expected unexpected error log message not found!");
    }
 }

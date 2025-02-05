@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 /**
- * 📌 Table of Contents for `GarminServiceTest`
+ * 📌 GarminServiceTest - Unit tests for GarminService.
 
  * 1️⃣ Tests for `processAndSaveSummary` (Generic Method)
  *    - ✅ `givenValidData_whenProcessAndSaveSummary_thenSavesSuccessfully`
