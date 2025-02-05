@@ -1,5 +1,6 @@
 package com.backend.utils;
 
+import com.backend.exceptions.GarminDataParsingException;
 import com.backend.models.BaseSummary;
 import com.backend.models.CurrentDaySummary;
 import com.backend.models.RecentDailySummaries;
@@ -17,21 +18,29 @@ public class DataParsingUtils {
    }
 
    public static String getString(Map<String, Object> data, String key) {
-      Object value = data.getOrDefault(key, null);
-      if (value == null) return null;
+      try {
+         Object value = data.getOrDefault(key, null);
+         if (value == null) return null;
 
-      String stringValue = value.toString();
-      return key.contains("time") || key.contains("sleep") ? cleanTimeFormat(stringValue) : stringValue;
+         String stringValue = value.toString();
+         return key.contains("time") || key.contains("sleep") ? cleanTimeFormat(stringValue) : stringValue;
+      } catch (Exception e) {
+         throw new GarminDataParsingException("Error parsing string value for key: " + key, e);
+      }
    }
 
    public static Integer getInteger(Map<String, Object> data, String key) {
       Object value = data.getOrDefault(key, null);
       if (value == null) return null;
 
-      if (value instanceof Double) {
-         return roundDoubleToInteger((Double) value);
+      try {
+         if (value instanceof Double) {
+            return roundDoubleToInteger((Double) value);
+         }
+         return Integer.valueOf(value.toString());
+      } catch (NumberFormatException e) {
+         return null; // ✅ Return null for invalid integers instead of an exception
       }
-      return Integer.valueOf(value.toString());
    }
 
    public static Double getDouble(Map<String, Object> data, String key) {
@@ -49,28 +58,26 @@ public class DataParsingUtils {
       return (value != null) ? (int) Math.round(value) : null;
    }
 
-   /** Safely extracts a number (Double or Integer) and returns it as a Double */
    public static Double getNumber(Map<String, Object> data, String key) {
       Object value = data.getOrDefault(key, null);
       if (value == null) return null;
 
-      if (value instanceof Integer) {
-         return ((Integer) value).doubleValue(); // Convert Integer → Double
-      }
-      if (value instanceof Double) {
-         return (Double) value;
-      }
       try {
+         if (value instanceof Integer) {
+            return ((Integer) value).doubleValue(); // Convert Integer → Double
+         }
+         if (value instanceof Double) {
+            return (Double) value;
+         }
          return Double.valueOf(value.toString()); // Handle unexpected string numbers
       } catch (NumberFormatException e) {
-         return null;
+         return null; // ✅ Return null for invalid numbers instead of an exception
       }
    }
 
-
    public static BaseSummary mapToBaseSummary(Map<String, Object> data) {
       if (data == null) {
-         throw new IllegalArgumentException("Data map cannot be null");
+         throw new GarminDataParsingException("Data map cannot be null");
       }
 
       return new BaseSummary(
@@ -148,7 +155,7 @@ public class DataParsingUtils {
     */
    public static RecentDailySummaries mapToRecentDailySummaries(List<CurrentDaySummary> summaries) {
       if (summaries == null || summaries.isEmpty()) {
-         throw new NoSuchElementException("Summaries list cannot be null or empty");
+         throw new GarminDataParsingException("Summaries list cannot be null or empty when mapping to RecentDailySummaries.");
       }
 
       return new RecentDailySummaries(

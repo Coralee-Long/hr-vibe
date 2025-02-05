@@ -1,6 +1,7 @@
 package com.backend.repos.SQL;
 
 import com.backend.config.GarminDatabaseConfig;
+import com.backend.exceptions.GarminDatabaseException;
 import org.springframework.stereotype.Repository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -37,7 +38,7 @@ public class GarminSQLiteRepo {
             tables.add(rs.getString("name"));
          }
       } catch (SQLException e) {
-         System.err.println("❌ Database error: " + e.getMessage());
+         throw new GarminDatabaseException("Failed to retrieve table names from database: " + databaseName, e);
       }
       return tables;
    }

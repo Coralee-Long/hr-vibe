@@ -1,5 +1,6 @@
 package com.backend.services;
 
+import com.backend.exceptions.GarminProcessingException;
 import com.backend.models.*;
 import com.backend.repos.MongoDB.*;
 import com.backend.repos.SQL.GarminSQLiteRepo;
@@ -119,13 +120,17 @@ class GarminServiceTest {
    }
 
    @Test
-   void givenNoData_whenProcessAndSaveCurrentDaySummary_thenLogsWarningAndSkipsSaving() {
+   void givenNoData_whenProcessAndSaveCurrentDaySummary_thenThrowsException() {
       String databaseName = "testDB";
       String tableName = "daily_summary";
 
       when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(List.of());
 
-      garminService.processAndSaveCurrentDaySummary(databaseName, tableName);
+      GarminProcessingException exception = assertThrows(
+          GarminProcessingException.class,
+          () -> garminService.processAndSaveCurrentDaySummary(databaseName, tableName));
+
+      assertEquals("No data found in table: daily_summary", exception.getMessage());
 
       verify(garminSQLiteRepo).fetchTableData(databaseName, tableName);
       verifyNoInteractions(validationService, currentDaySummaryRepo);

@@ -3,6 +3,8 @@ package com.backend.services;
 import static com.backend.utils.DataParsingUtils.*;
 import static com.backend.utils.SummaryUtils.*;
 
+import com.backend.exceptions.GarminDatabaseException;
+import com.backend.exceptions.GarminProcessingException;
 import com.backend.models.*;
 import com.backend.repos.MongoDB.*;
 import com.backend.repos.SQL.GarminSQLiteRepo;
@@ -55,24 +57,28 @@ public class GarminService {
        String databaseName,
        String tableName,
        Function<Map<String, Object>, T> mapper,
-       MongoRepository<T, String> repo) {
+       MongoRepository<T, String> repo
+                                           ) {
       logger.info("Fetching data from SQLite: {}, table: {}", databaseName, tableName);
 
-      List<Map<String, Object>> rawData = garminSQLiteRepo.fetchTableData(databaseName, tableName);
+      List<Map<String, Object>> rawData;
+      try {
+         rawData = garminSQLiteRepo.fetchTableData(databaseName, tableName);
+      } catch (GarminDatabaseException e) {
+         throw new GarminProcessingException("Failed to process summary for " + tableName, e);
+      }
+
       if (rawData.isEmpty()) {
-         logger.warn("No data found in table: {}", tableName);
-         return;
+         throw new GarminProcessingException("No data found in table: " + tableName);
       }
 
       Optional<Map<String, Object>> latestData = getLatestData(rawData, "day");
       if (latestData.isEmpty()) {
-         logger.warn("No valid data found for table: {}", tableName);
-         return;
+         throw new GarminProcessingException("No valid data found for table: " + tableName);
       }
 
       T summary = mapper.apply(latestData.get());
 
-      // ✅ Validate before saving
       validationService.validate(summary);
 
       repo.save(summary);

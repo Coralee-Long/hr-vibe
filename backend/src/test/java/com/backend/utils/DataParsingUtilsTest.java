@@ -1,5 +1,6 @@
 package com.backend.utils;
 
+import com.backend.exceptions.GarminDataParsingException;
 import com.backend.models.BaseSummary;
 import com.backend.models.CurrentDaySummary;
 import com.backend.models.RecentDailySummaries;
@@ -179,7 +180,7 @@ class DataParsingUtilsTest {
    }
 
    /**
-    * ✅ Test `getDouble()` returns null for invalid data.
+    * ✅ Test `getDouble()` returns null for invalid data instead of throwing an exception.
     */
    @Test
    void givenInvalidDoubleString_whenGetDouble_thenReturnsNull() {
@@ -187,10 +188,10 @@ class DataParsingUtilsTest {
       Map<String, Object> data = new HashMap<>();
       data.put("weight", "not_a_number");
 
-      // WHEN the method is called
+      // WHEN calling getDouble
       Double result = DataParsingUtils.getDouble(data, "weight");
 
-      // THEN it should return null
+      // THEN it should return null (not throw an exception)
       assertNull(result);
    }
 
@@ -242,15 +243,15 @@ class DataParsingUtilsTest {
 
    /**
     * ✅ Test `mapToBaseSummary()` when input map is null.
-    * Expected: Should throw IllegalArgumentException.
+    * Expected: Should throw GarminDataParsingException.
     */
    @Test
    void givenNullMap_whenMapToBaseSummary_thenThrowsException() {
       // GIVEN a null input
       Map<String, Object> data = null;
 
-      // WHEN calling mapToBaseSummary THEN it should throw IllegalArgumentException
-      assertThrows(IllegalArgumentException.class,
+      // WHEN calling mapToBaseSummary THEN it should throw GarminDataParsingException
+      assertThrows(GarminDataParsingException.class,
                    () -> DataParsingUtils.mapToBaseSummary(data));
    }
 
@@ -310,37 +311,44 @@ class DataParsingUtilsTest {
       assertEquals(50, result.hrMin().get(0)); // First day (latest)
       assertEquals(56, result.hrMin().get(6)); // Last day (oldest)
    }
+
    /**
-    * ✅ Test `mapToRecentDailySummaries()` throws an exception for an empty list.
+    * ✅ Test `mapToRecentDailySummaries()` throws `GarminDataParsingException`
+    * when given an empty list.
     */
    @Test
-   void givenEmptyList_whenMapToRecentDailySummaries_thenThrowsException() {
+   void givenEmptyList_whenMapToRecentDailySummaries_thenThrowsGarminException() {
       // GIVEN an empty list
       List<CurrentDaySummary> summaries = List.of();
 
-      // WHEN mapping to RecentDailySummaries THEN it should throw an exception
-      Exception exception = assertThrows(
-          NoSuchElementException.class,
-          () -> DataParsingUtils.mapToRecentDailySummaries(summaries));
+      // WHEN mapping to RecentDailySummaries THEN it should throw GarminDataParsingException
+      Exception exception = assertThrows(GarminDataParsingException.class,
+                                         () -> DataParsingUtils.mapToRecentDailySummaries(summaries));
 
-      // THEN confirm exception type is correct (since getMessage() may be null)
+      // THEN verify exception message contains the expected text
       assertNotNull(exception); // Ensure exception is not null
-      assertTrue(true); // Confirm correct type
+      assertTrue(exception.getMessage().contains("Summaries list cannot be null or empty"));
    }
 
+
    /**
-    * ✅ Test `mapToRecentDailySummaries()` when input list is null.
-    * Expected: Should throw NoSuchElementException.
+    * ✅ Test `mapToRecentDailySummaries()` throws `GarminDataParsingException`
+    * when given a null list.
     */
    @Test
-   void givenNullList_whenMapToRecentDailySummaries_thenThrowsException() {
+   void givenNullList_whenMapToRecentDailySummaries_thenThrowsGarminException() {
       // GIVEN a null input list
       List<CurrentDaySummary> summaries = null;
 
-      // WHEN calling mapToRecentDailySummaries THEN it should throw NoSuchElementException
-      assertThrows(NoSuchElementException.class,
-                   () -> DataParsingUtils.mapToRecentDailySummaries(summaries));
+      // WHEN calling mapToRecentDailySummaries THEN it should throw GarminDataParsingException
+      Exception exception = assertThrows(GarminDataParsingException.class,
+                                         () -> DataParsingUtils.mapToRecentDailySummaries(summaries));
+
+      // THEN verify exception message contains the expected text
+      assertNotNull(exception); // Ensure exception is not null
+      assertTrue(exception.getMessage().contains("Summaries list cannot be null or empty"));
    }
+
 
    /**
     * ✅ Test `mapToRecentDailySummaries()` when some fields inside records are null.
