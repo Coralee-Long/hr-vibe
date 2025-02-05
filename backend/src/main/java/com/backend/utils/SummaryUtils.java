@@ -26,6 +26,7 @@ public class SummaryUtils {
          return rawData.stream()
              .filter(data -> {
                 if (!data.containsKey(dateColumn) || data.get(dateColumn) == null) {
+                   logger.info("dateColumn:" + dateColumn);
                    logger.error("❌ Missing or null value for column '{}'", dateColumn);
                    return false;
                 }

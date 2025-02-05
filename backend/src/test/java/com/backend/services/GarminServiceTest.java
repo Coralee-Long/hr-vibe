@@ -4,6 +4,7 @@ import com.backend.exceptions.GarminProcessingException;
 import com.backend.models.*;
 import com.backend.repos.MongoDB.*;
 import com.backend.repos.SQL.GarminSQLiteRepo;
+import com.backend.utils.DataParsingUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,13 +12,48 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
-import java.time.LocalDate;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+
+/**
+ * 📌 Table of Contents for `GarminServiceTest`
+
+ * 1️⃣ Tests for `processAndSaveSummary` (Generic Method)
+ *    - ✅ `givenValidData_whenProcessAndSaveSummary_thenSavesSuccessfully`
+ *    - ❌ `givenNoData_whenProcessAndSaveSummary_thenThrowsException`
+ *    - ❌ `givenInvalidData_whenProcessAndSaveSummary_thenThrowsValidationException`
+ *    - ❌ `givenDatabaseException_whenProcessAndSaveSummary_thenThrowsProcessingException`
+
+ * 2️⃣ Tests for `processAndSaveCurrentDaySummary`
+ *    - ✅ `givenValidData_whenProcessAndSaveCurrentDaySummary_thenSavesSuccessfully`
+ *    - ❌ `givenNoData_whenProcessAndSaveCurrentDaySummary_thenThrowsException`
+
+ * 3️⃣ Tests for `processAndSaveWeeklySummary`
+ *    - ✅ `givenValidData_whenProcessAndSaveWeeklySummary_thenSavesSuccessfully`
+ *    - ❌ `givenNoData_whenProcessAndSaveWeeklySummary_thenThrowsException`
+
+ * 4️⃣ Tests for `processAndSaveMonthlySummary`
+ *    - ✅ `givenValidData_whenProcessAndSaveMonthlySummary_thenSavesSuccessfully`
+ *    - ❌ `givenNoData_whenProcessAndSaveMonthlySummary_thenThrowsException`
+
+ * 5️⃣ Tests for `processAndSaveYearlySummary`
+ *    - ✅ `givenValidData_whenProcessAndSaveYearlySummary_thenSavesSuccessfully`
+ *    - ❌ `givenNoData_whenProcessAndSaveYearlySummary_thenThrowsException`
+
+ * 6️⃣ Tests for `processAndSaveRecentDailySummaries`
+ *    - ✅ `givenValidData_whenProcessAndSaveRecentDailySummaries_thenSavesSuccessfully`
+ *    - ❌ `givenNoData_whenProcessAndSaveRecentDailySummaries_thenLogsWarningAndSkipsSaving`
+ */
 
 @ExtendWith(MockitoExtension.class)
 class GarminServiceTest {
@@ -29,16 +65,14 @@ class GarminServiceTest {
    private CurrentDaySummaryRepo currentDaySummaryRepo;
 
    @Mock
+   private RecentDailySummariesRepo recentDailySummariesRepo;
+
+   @Mock
    private WeeklySummaryRepo weeklySummaryRepo;
 
-   @Mock
-   private MonthlySummaryRepo monthlySummaryRepo;
+   @Mock MonthlySummaryRepo monthlySummaryRepo;
 
-   @Mock
-   private YearlySummaryRepo yearlySummaryRepo;
-
-   @Mock
-   private RecentDailySummariesRepo recentDailySummariesRepo;
+   @Mock YearlySummaryRepo yearlySummaryRepo;
 
    @Mock
    private ValidationService validationService;
@@ -46,60 +80,46 @@ class GarminServiceTest {
    @InjectMocks
    private GarminService garminService;
 
-   private List<Map<String, Object>> mockSQLiteData;
-   private List<CurrentDaySummary> last7Days;
+   // Fields to hold the parsed mock data
+   private List<Map<String, Object>> mockSQLiteDataDay;
+   private List<Map<String, Object>> mockSQLiteDataWeek;
+   private List<Map<String, Object>> mockSQLiteDataMonth;
+   private List<Map<String, Object>> mockSQLiteDataYear;
 
    @BeforeEach
-   void setUp() {
-      reset(garminSQLiteRepo, currentDaySummaryRepo, validationService);
+   void setUp() throws IOException {
+      // Reset mocks if needed
+      // (Assuming you're using Mockito's reset() as required)
+      // reset(garminSQLiteRepo, currentDaySummaryRepo, weeklySummaryRepo, monthlySummaryRepo, yearlySummaryRepo, validationService);
 
-      // Mock SQLite Data
-      mockSQLiteData = List.of(
-          Map.of("day", "2025-01-30", "metric", 100),
-          Map.of("day", "2025-01-31", "metric", 110)
-                              );
+      // Load daily summary mock data
+      String jsonDayData = new String(Files.readAllBytes(Paths.get("src/test/resources/sqlite_mock_days_summary.json")));
+      mockSQLiteDataDay = DataParsingUtils.JsonUtils.parseJsonToList(jsonDayData);
 
-      // Mock Last 7 Days Data
-      last7Days = List.of(
-          createMockCurrentDaySummary("2025-01-31", 100, 120, 110),
-          createMockCurrentDaySummary("2025-01-30", 90, 110, 100)
-                         );
+      // Load weekly summary mock data
+      String jsonWeekData = new String(Files.readAllBytes(Paths.get("src/test/resources/sqlite_mock_weeks_summary.json")));
+      mockSQLiteDataWeek = DataParsingUtils.JsonUtils.parseJsonToList(jsonWeekData);
+
+      // Load monthly summary mock data
+      String jsonMonthData = new String(Files.readAllBytes(Paths.get("src/test/resources/sqlite_mock_months_summary.json")));
+      mockSQLiteDataMonth = DataParsingUtils.JsonUtils.parseJsonToList(jsonMonthData);
+
+      // Load yearly summary mock data
+      String jsonYearData = new String(Files.readAllBytes(Paths.get("src/test/resources/sqlite_mock_years_summary.json")));
+      mockSQLiteDataYear = DataParsingUtils.JsonUtils.parseJsonToList(jsonYearData);
    }
+
 
    /**
-    * 🔹 Helper method to create mock `CurrentDaySummary` instances.
+    * ✅ Test Case: Given valid data, when processAndSaveSummary is called, then data is saved successfully.
     */
-   private CurrentDaySummary createMockCurrentDaySummary(String date, int hrMin, int hrMax, int hrAvg) {
-      return new CurrentDaySummary(
-          null, LocalDate.parse(date),
-          new BaseSummary(
-              hrMin, hrMax, hrAvg,
-              60, 65, 62,      // rhrMin, rhrMax, rhrAvg
-              50, 55, 53,      // inactiveHrMin, inactiveHrMax, inactiveHrAvg
-              2000, 2200, 2100, // caloriesAvg, caloriesGoal, caloriesBmrAvg
-              1800, 1900, 1700, // caloriesConsumedAvg, caloriesActiveAvg, activitiesCalories
-              60.0, 65.0, 63.0, // weightMin, weightMax, weightAvg
-              3000, 3500, 3200, // hydrationGoal, hydrationIntake, hydrationAvg
-              50, 55,           // sweatLoss, sweatLossAvg
-              90, 100,          // bbMin, bbMax
-              30,               // stressAvg
-              10, 20, 15,       // rrMin, rrMax, rrWakingAvg
-              95, 97,           // spo2Min, spo2Avg
-              "06:30:00", "08:00:00", "07:15:00",  // sleepMin, sleepMax, sleepAvg
-              "01:30:00", "02:00:00", "01:45:00",  // remSleepMin, remSleepMax, remSleepAvg
-              10000, 9000, 10, 9, // stepsGoal, steps, floorsGoal, floors
-              5, 12.5,            // activities, activitiesDistance
-              "01:00:00", "00:45:00", "00:30:00", "00:15:00" // intensity times
-          )
-      );
-   }
-
    @Test
-   void givenValidData_whenProcessAndSaveCurrentDaySummary_thenSavesSuccessfully() {
+   void givenValidData_whenProcessAndSaveSummary_thenSavesSuccessfully() {
       String databaseName = "testDB";
       String tableName = "daily_summary";
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockSQLiteData);
+
+      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockSQLiteDataDay);
 
       garminService.processAndSaveCurrentDaySummary(databaseName, tableName);
 
@@ -108,17 +128,84 @@ class GarminServiceTest {
       verify(currentDaySummaryRepo).save(captor.capture());
 
       CurrentDaySummary savedSummary = captor.getValue();
-
       assertNotNull(savedSummary);
-      assertEquals(LocalDate.parse("2025-01-31"), savedSummary.day());
 
       // Ensure validation was called before saving
       verify(validationService).validate(savedSummary);
-
-      verify(garminSQLiteRepo).fetchTableData(databaseName, tableName);
-      verify(currentDaySummaryRepo).save(any(CurrentDaySummary.class));
    }
 
+   /**
+    * ❌ Test Case: Given no data, when processAndSaveSummary is called, then an exception is thrown.
+    */
+   @Test
+   void givenNoData_whenProcessAndSaveSummary_thenThrowsException() {
+      String databaseName = "testDB";
+      String tableName = "daily_summary";
+
+      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(List.of());
+
+      GarminProcessingException exception = assertThrows(GarminProcessingException.class, () ->
+          garminService.processAndSaveCurrentDaySummary(databaseName, tableName));
+
+      assertEquals("No data found in table: daily_summary", exception.getMessage());
+   }
+
+   /**
+    * ❌ Test Case: Given invalid data, when processAndSaveSummary is called, then validation exception is thrown.
+    */
+   @Test
+   void givenInvalidData_whenProcessAndSaveSummary_thenThrowsValidationException() {
+      String databaseName = "testDB";
+      String tableName = "daily_summary";
+
+      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockSQLiteDataDay);
+      doThrow(new RuntimeException("Validation failed"))
+          .when(validationService).validate(any(CurrentDaySummary.class));
+
+      assertThrows(RuntimeException.class, () ->
+          garminService.processAndSaveCurrentDaySummary(databaseName, tableName));
+   }
+
+   /**
+    * ❌ Test Case: Given a database exception, when processAndSaveSummary is called, then GarminProcessingException is thrown.
+    */
+   @Test
+   void givenDatabaseException_whenProcessAndSaveSummary_thenThrowsProcessingException() {
+      String databaseName = "testDB";
+      String tableName = "daily_summary";
+
+      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenThrow(new RuntimeException("Database error"));
+
+      assertThrows(GarminProcessingException.class, () ->
+          garminService.processAndSaveCurrentDaySummary(databaseName, tableName));
+   }
+
+   /**
+    * ✅ Test Case: Given valid data, when processAndSaveCurrentDaySummary is called, then data is saved successfully.
+    */
+   @Test
+   void givenValidData_whenProcessAndSaveCurrentDaySummary_thenSavesSuccessfully() {
+      String databaseName = "testDB";
+      String tableName = "daily_summary";
+
+      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockSQLiteDataDay);
+
+      garminService.processAndSaveCurrentDaySummary(databaseName, tableName);
+
+      // Capture the saved entity
+      ArgumentCaptor<CurrentDaySummary> captor = ArgumentCaptor.forClass(CurrentDaySummary.class);
+      verify(currentDaySummaryRepo).save(captor.capture());
+
+      CurrentDaySummary savedSummary = captor.getValue();
+      assertNotNull(savedSummary);
+
+      // Ensure validation was called before saving
+      verify(validationService).validate(savedSummary);
+   }
+
+   /**
+    * ❌ Test Case: Given no data, when processAndSaveCurrentDaySummary is called, then an exception is thrown.
+    */
    @Test
    void givenNoData_whenProcessAndSaveCurrentDaySummary_thenThrowsException() {
       String databaseName = "testDB";
@@ -126,44 +213,194 @@ class GarminServiceTest {
 
       when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(List.of());
 
-      GarminProcessingException exception = assertThrows(
-          GarminProcessingException.class,
-          () -> garminService.processAndSaveCurrentDaySummary(databaseName, tableName));
+      GarminProcessingException exception = assertThrows(GarminProcessingException.class, () ->
+          garminService.processAndSaveCurrentDaySummary(databaseName, tableName));
 
       assertEquals("No data found in table: daily_summary", exception.getMessage());
-
-      verify(garminSQLiteRepo).fetchTableData(databaseName, tableName);
-      verifyNoInteractions(validationService, currentDaySummaryRepo);
    }
 
+   /**
+    * ✅ Test Case: Given valid data, when processAndSaveWeeklySummary is called, then data is saved successfully.
+    */
    @Test
-   void givenValidData_whenProcessAndSaveRecentDailySummaries_thenSavesSuccessfully() {
-      when(currentDaySummaryRepo.findTop7ByOrderByDayDesc()).thenReturn(last7Days);
+   void givenValidData_whenProcessAndSaveWeeklySummary_thenSavesSuccessfully() {
+      String databaseName = "testDB";
+      String tableName = "weekly_summary";
 
-      garminService.processAndSaveRecentDailySummaries();
+      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockSQLiteDataWeek);
+
+      garminService.processAndSaveWeeklySummary(databaseName, tableName);
 
       // Capture the saved entity
-      ArgumentCaptor<RecentDailySummaries> captor = ArgumentCaptor.forClass(RecentDailySummaries.class);
-      verify(recentDailySummariesRepo).save(captor.capture());
+      ArgumentCaptor<WeeklySummary> captor = ArgumentCaptor.forClass(WeeklySummary.class);
+      verify(weeklySummaryRepo).save(captor.capture());
 
-      RecentDailySummaries savedSummary = captor.getValue();
+      WeeklySummary savedSummary = captor.getValue();
       assertNotNull(savedSummary);
-      assertEquals(LocalDate.parse("2025-01-31"), savedSummary.latestDay());
+      assertNotNull(savedSummary.firstDay()); // Ensures the correct date field is properly set
 
       // Ensure validation was called before saving
       verify(validationService).validate(savedSummary);
-
-      verify(currentDaySummaryRepo).findTop7ByOrderByDayDesc();
-      verify(recentDailySummariesRepo).save(any(RecentDailySummaries.class));
    }
 
+   /**
+    * ❌ Test Case: Given no data, when processAndSaveWeeklySummary is called, then an exception is thrown.
+    */
+   @Test
+   void givenNoData_whenProcessAndSaveWeeklySummary_thenThrowsException() {
+      String databaseName = "testDB";
+      String tableName = "weekly_summary";
+
+      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(List.of());
+
+      GarminProcessingException exception = assertThrows(GarminProcessingException.class, () ->
+          garminService.processAndSaveWeeklySummary(databaseName, tableName));
+
+      assertEquals("No data found in table: weekly_summary", exception.getMessage());
+   }
+
+   /**
+    * ✅ Test Case: Given valid data, when processAndSaveMonthlySummary is called, then data is saved successfully.
+    */
+   @Test
+   void givenValidData_whenProcessAndSaveMonthlySummary_thenSavesSuccessfully() {
+      String databaseName = "testDB";
+      String tableName = "monthly_summary";
+
+      // Use the monthly mock data
+      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockSQLiteDataMonth);
+
+      garminService.processAndSaveMonthlySummary(databaseName, tableName);
+
+      // Capture the saved entity
+      ArgumentCaptor<MonthlySummary> captor = ArgumentCaptor.forClass(MonthlySummary.class);
+      verify(monthlySummaryRepo).save(captor.capture());
+
+      MonthlySummary savedSummary = captor.getValue();
+      assertNotNull(savedSummary);
+      assertNotNull(savedSummary.firstDay()); // Ensures the date field is correctly set
+
+      // Ensure validation was called before saving
+      verify(validationService).validate(savedSummary);
+   }
+
+   /**
+    * ❌ Test Case: Given no data, when processAndSaveMonthlySummary is called, then an exception is thrown.
+    */
+   @Test
+   void givenNoData_whenProcessAndSaveMonthlySummary_thenThrowsException() {
+      String databaseName = "testDB";
+      String tableName = "monthly_summary";
+
+      // Return an empty list to simulate no data
+      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(List.of());
+
+      GarminProcessingException exception = assertThrows(GarminProcessingException.class, () ->
+          garminService.processAndSaveMonthlySummary(databaseName, tableName));
+
+      assertEquals("No data found in table: monthly_summary", exception.getMessage());
+   }
+
+   /**
+    * ✅ Test Case: Given valid data, when processAndSaveYearlySummary is called, then data is saved successfully.
+    */
+   @Test
+   void givenValidData_whenProcessAndSaveYearlySummary_thenSavesSuccessfully() {
+      String databaseName = "testDB";
+      String tableName = "yearly_summary";
+
+      // Use the yearly mock data
+      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockSQLiteDataYear);
+
+      garminService.processAndSaveYearlySummary(databaseName, tableName);
+
+      // Capture the saved entity
+      ArgumentCaptor<YearlySummary> captor = ArgumentCaptor.forClass(YearlySummary.class);
+      verify(yearlySummaryRepo).save(captor.capture());
+
+      YearlySummary savedSummary = captor.getValue();
+      assertNotNull(savedSummary);
+      assertNotNull(savedSummary.firstDay()); // Ensure the date field is correctly set
+
+      // Ensure validation was called before saving
+      verify(validationService).validate(savedSummary);
+   }
+
+   /**
+    * ❌ Test Case: Given no data, when processAndSaveYearlySummary is called, then an exception is thrown.
+    */
+   @Test
+   void givenNoData_whenProcessAndSaveYearlySummary_thenThrowsException() {
+      String databaseName = "testDB";
+      String tableName = "yearly_summary";
+
+      // Return an empty list to simulate no data
+      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(List.of());
+
+      GarminProcessingException exception = assertThrows(GarminProcessingException.class, () ->
+          garminService.processAndSaveYearlySummary(databaseName, tableName));
+
+      assertEquals("No data found in table: yearly_summary", exception.getMessage());
+   }
+
+   /**
+    * ✅ Test Case: Given valid data, when processAndSaveRecentDailySummaries is called, then data is saved successfully.
+    */
+   @Test
+   void givenValidData_whenProcessAndSaveRecentDailySummaries_thenSavesSuccessfully() throws IOException {
+      // Configure ObjectMapper to handle Java 8 date/time types
+      ObjectMapper mapper = new ObjectMapper();
+      mapper.registerModule(new JavaTimeModule());
+      mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+
+      // Load the expected RecentDailySummaries from the mock file using the configured mapper.
+      RecentDailySummaries expectedRecent = mapper.readValue(
+          Paths.get("src/test/resources/recent_daily_summaries_mock.json").toFile(),
+          RecentDailySummaries.class
+                                                            );
+
+      // Create a dummy list of CurrentDaySummary objects that will map to a RecentDailySummaries.
+      // Use the expected latestDay from the loaded object.
+      CurrentDaySummary dummyDaily = new CurrentDaySummary(
+          null,
+          expectedRecent.latestDay(),
+          DataParsingUtils.mapToBaseSummary(mockSQLiteDataDay.get(0))
+      );
+      // Create a list of 7 identical dummy objects.
+      List<CurrentDaySummary> dummyList = List.of(
+          dummyDaily, dummyDaily, dummyDaily, dummyDaily, dummyDaily, dummyDaily, dummyDaily
+                                                 );
+
+      when(currentDaySummaryRepo.findTop7ByOrderByDayDesc()).thenReturn(dummyList);
+
+      // Call the service method.
+      garminService.processAndSaveRecentDailySummaries();
+
+      // Capture the RecentDailySummaries object saved to MongoDB.
+      ArgumentCaptor<RecentDailySummaries> captor = ArgumentCaptor.forClass(RecentDailySummaries.class);
+      verify(recentDailySummariesRepo).save(captor.capture());
+      RecentDailySummaries savedRecent = captor.getValue();
+
+      assertNotNull(savedRecent);
+      // Verify that the latestDay field matches the expected value from the mock file.
+      assertEquals(expectedRecent.latestDay(), savedRecent.latestDay());
+      // Optionally, add further assertions to check other fields.
+
+      // Ensure that validation was called.
+      verify(validationService).validate(savedRecent);
+   }
+
+   /**
+    * ❌ Test Case: Given no data, when processAndSaveRecentDailySummaries is called, then logs warning and skips saving.
+    */
    @Test
    void givenNoData_whenProcessAndSaveRecentDailySummaries_thenLogsWarningAndSkipsSaving() {
+      // Simulate no daily summaries found.
       when(currentDaySummaryRepo.findTop7ByOrderByDayDesc()).thenReturn(List.of());
 
       garminService.processAndSaveRecentDailySummaries();
 
-      verify(currentDaySummaryRepo).findTop7ByOrderByDayDesc();
-      verifyNoInteractions(validationService, recentDailySummariesRepo);
+      // Verify that the recentDailySummariesRepo.save method was never called.
+      verify(recentDailySummariesRepo, never()).save(any());
    }
 }

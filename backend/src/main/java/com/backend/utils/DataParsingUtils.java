@@ -1,12 +1,15 @@
 package com.backend.utils;
 
 import com.backend.exceptions.GarminDataParsingException;
+import com.backend.exceptions.JsonParsingException;
 import com.backend.models.*;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 public class DataParsingUtils {
 
@@ -164,20 +167,22 @@ public class DataParsingUtils {
     * ✅ Converts SQLite row data into `WeeklySummary` object.
     */
    public static WeeklySummary mapToWeeklySummary(Map<String, Object> data) {
-      return new WeeklySummary(
-          null,
-          LocalDate.parse(data.get("week_start").toString()),
-          mapToBaseSummary(data)
-      );
+      LocalDate firstDay = LocalDate.parse(data.get("first_day").toString());
+      return new WeeklySummary(null, firstDay, mapToBaseSummary(data));
    }
 
    /**
-    * ✅ Converts SQLite row data into `MonthlySummary` object.
+    * ✅ Converts SQLite row data into a `MonthlySummary` object.
     */
    public static MonthlySummary mapToMonthlySummary(Map<String, Object> data) {
+      // Parse the date from the "first_day" key
+      LocalDate originalDate = LocalDate.parse(data.get("first_day").toString());
+      // Adjust to the first day of the month
+      LocalDate firstDayOfMonth = originalDate.withDayOfMonth(1);
+
       return new MonthlySummary(
-          null,
-          LocalDate.parse(data.get("month_start").toString()),
+          null, // MongoDB will generate an ID if needed
+          firstDayOfMonth,
           mapToBaseSummary(data)
       );
    }
@@ -188,7 +193,7 @@ public class DataParsingUtils {
    public static YearlySummary mapToYearlySummary(Map<String, Object> data) {
       return new YearlySummary(
           null,
-          LocalDate.parse(data.get("year_start").toString()),
+          LocalDate.parse(data.get("first_day").toString()),
           mapToBaseSummary(data)
       );
    }
@@ -270,5 +275,27 @@ public class DataParsingUtils {
           summaries.stream().map(s -> s.summary().moderateActivityTime()).toList(),
           summaries.stream().map(s -> s.summary().vigorousActivityTime()).toList()
       );
+   }
+
+   /**
+    * Utility class for JSON parsing operations.
+    */
+   public static class JsonUtils {
+
+      private static final ObjectMapper objectMapper = new ObjectMapper();
+
+      /**
+       * ✅ Parses a JSON string into a List of Maps.
+       * @param jsonData The raw JSON string.
+       * @return List of key-value maps representing JSON objects.
+       * @throws JsonParsingException if JSON parsing fails.
+       */
+      public static List<Map<String, Object>> parseJsonToList(String jsonData) {
+         try {
+            return objectMapper.readValue(jsonData, new TypeReference<>() {});
+         } catch (IOException e) {
+            throw new JsonParsingException("Error parsing JSON data", e);
+         }
+      }
    }
 }

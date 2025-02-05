@@ -55,15 +55,15 @@ public class GarminService {
    private <T> void processAndSaveSummary(
        String databaseName,
        String tableName,
+       String dateKey,
        Function<Map<String, Object>, T> mapper,
-       MongoRepository<T, String> repo
-                                         ) {
+       MongoRepository<T, String> repo) {
       logger.info("Fetching data from SQLite: {}, table: {}", databaseName, tableName);
 
       List<Map<String, Object>> rawData;
       try {
          rawData = garminSQLiteRepo.fetchTableData(databaseName, tableName);
-      } catch (GarminDatabaseException e) {
+      } catch (RuntimeException e) {
          throw new GarminProcessingException("Failed to process summary for " + tableName, e);
       }
 
@@ -71,39 +71,37 @@ public class GarminService {
          throw new GarminProcessingException("No data found in table: " + tableName);
       }
 
-      Optional<Map<String, Object>> latestData = getLatestData(rawData, "day");
+      Optional<Map<String, Object>> latestData = getLatestData(rawData, dateKey);
       if (latestData.isEmpty()) {
          throw new GarminProcessingException("No valid data found for table: " + tableName);
       }
 
-      // Ensure correct type inference
       T summary = mapper.apply(latestData.get());
-
       validationService.validate(summary);
       repo.save(summary);
 
-      logger.info("✅ Successfully saved {} summary for {}", summary.getClass().getSimpleName(), "day");
+      logger.info("✅ Successfully saved {} summary for {}", summary.getClass().getSimpleName(), dateKey);
    }
-
 
    // 🔹 Processing Methods - Now using the `DataParsingUtils` mapping methods
    public void processAndSaveCurrentDaySummary(String db, String table) {
-      processAndSaveSummary(db, table, DataParsingUtils::mapToCurrentDaySummary, currentDaySummaryRepo);
+      processAndSaveSummary(db, table, "day", DataParsingUtils::mapToCurrentDaySummary, currentDaySummaryRepo);
    }
 
    public void processAndSaveWeeklySummary(String db, String table) {
-      processAndSaveSummary(db, table, DataParsingUtils::mapToWeeklySummary, weeklySummaryRepo);
+      processAndSaveSummary(db, table, "first_day", DataParsingUtils::mapToWeeklySummary, weeklySummaryRepo);
    }
 
    public void processAndSaveMonthlySummary(String db, String table) {
-      processAndSaveSummary(db, table, DataParsingUtils::mapToMonthlySummary, monthlySummaryRepo);
+      processAndSaveSummary(db, table, "first_day", DataParsingUtils::mapToMonthlySummary, monthlySummaryRepo);
    }
 
    public void processAndSaveYearlySummary(String db, String table) {
-      processAndSaveSummary(db, table, DataParsingUtils::mapToYearlySummary, yearlySummaryRepo);
+      processAndSaveSummary(db, table, "first_day", DataParsingUtils::mapToYearlySummary, yearlySummaryRepo);
    }
 
    /**
+    *
     * ✅ Process and save recent daily summaries (last 7 days).
     */
    public void processAndSaveRecentDailySummaries() {
