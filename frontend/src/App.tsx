@@ -10,6 +10,10 @@ import { Sleep } from "@/pages/Sleep/Sleep.tsx";
 import { HRV } from "@/pages/HRV/HRV.tsx";
 import { Training } from "@/pages/Training/Training.tsx";
 import { Activites } from "@/pages/Activities/Activities.tsx";
+import { Home } from "@/pages/Home/Home.tsx";
+
+import { CurrentDaySummaryProvider } from "@/context/CurrentDaySummaryContext"
+import { RecentDailySummariesProvider } from "@/context/RecentDailySummariesContext.tsx";
 
 export const App = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -23,16 +27,31 @@ export const App = () => {
     setTimeout(() => setLoading(false), 1000);
   }, []);
 
+  // TODO:
+  //  Move Routes into correct Context Wrappers & Secure Routes
+
   return loading ? (
     <Loader />
   ) : (
     <>
+      <RecentDailySummariesProvider>
+      <CurrentDaySummaryProvider>
       <Routes>
+        <Route
+          path="/"
+          element={
+            <>
+              <PageTitle title="HRVibe | Home" />
+              <Home />
+            </>
+          }
+        />
+
         <Route
           path="/login"
           element={
             <>
-              <PageTitle title="Login | HRVibe" />
+              <PageTitle title="HRVibe | Login" />
               <Login />
             </>
           }
@@ -42,7 +61,7 @@ export const App = () => {
           path="/dashboard"
           element={
             <>
-              <PageTitle title="Dashboard | HRVibe" />
+              <PageTitle title="HRVibe | Dashboard" />
               <Dashboard />
             </>
           }
@@ -52,7 +71,7 @@ export const App = () => {
           path="/dashboard/insights"
           element={
             <>
-              <PageTitle title="Insights | HRVibe" />
+              <PageTitle title="HRVibe | Insights" />
               <Insights />
             </>
           }
@@ -61,7 +80,7 @@ export const App = () => {
           path="/dashboard/sleep"
           element={
             <>
-              <PageTitle title="Sleep & Stress | HRVibe" />
+              <PageTitle title="HRVibe | Sleep & Stress" />
               <Sleep />
             </>
           }
@@ -70,7 +89,7 @@ export const App = () => {
           path="/dashboard/activities"
           element={
             <>
-              <PageTitle title="Activites | HRVibe" />
+              <PageTitle title="HRVibe | Activites" />
               <Activites />
             </>
           }
@@ -79,7 +98,7 @@ export const App = () => {
           path="/dashboard/training"
           element={
             <>
-              <PageTitle title="Training | HRVibe" />
+              <PageTitle title="HRVibe | Training" />
               <Training />
             </>
           }
@@ -88,12 +107,14 @@ export const App = () => {
           path="/dashboard/hrv"
           element={
             <>
-              <PageTitle title="HRV & Recovery | HRVibe" />
+              <PageTitle title="HRVibe | HRV & Recovery" />
               <HRV />
             </>
           }
         />
       </Routes>
+        </CurrentDaySummaryProvider>
+      </RecentDailySummariesProvider>
     </>
   );
 };
