@@ -19,6 +19,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -344,7 +345,8 @@ class GarminServiceTest {
    }
 
    /**
-    * ✅ Test Case: Given valid data, when processAndSaveRecentDailySummaries is called, then data is saved successfully.
+    * ✅ Test Case: Given valid data and a valid reference date, when processAndSaveRecentDailySummaries is called,
+    * then data is saved successfully.
     */
    @Test
    void givenValidData_whenProcessAndSaveRecentDailySummaries_thenSavesSuccessfully() throws IOException {
@@ -359,22 +361,25 @@ class GarminServiceTest {
           RecentDailySummaries.class
                                                             );
 
-      // Create a dummy list of CurrentDaySummary objects that will map to a RecentDailySummaries.
-      // Use the expected latestDay from the loaded object.
+      // Use the expected latestDay from the loaded object as the reference date.
+      LocalDate refDate = expectedRecent.latestDay();
+
+      // Create a dummy CurrentDaySummary using the reference date.
       CurrentDaySummary dummyDaily = new CurrentDaySummary(
           null,
-          expectedRecent.latestDay(),
-          DataParsingUtils.mapToBaseSummary(mockSQLiteDataDay.get(0))
+          refDate,
+          DataParsingUtils.mapToBaseSummary(mockSQLiteDataDay.getFirst())
       );
-      // Create a list of 7 identical dummy objects.
+      // Create a list of 7 identical dummy objects (immutable list is fine since service makes a mutable copy).
       List<CurrentDaySummary> dummyList = List.of(
           dummyDaily, dummyDaily, dummyDaily, dummyDaily, dummyDaily, dummyDaily, dummyDaily
                                                  );
 
-      when(currentDaySummaryRepo.findTop7ByOrderByDayDesc()).thenReturn(dummyList);
+      // Use the new repository method with the reference date.
+      when(currentDaySummaryRepo.findTop7ByDayLessThanEqualOrderByDayDesc(refDate)).thenReturn(dummyList);
 
-      // Call the service method.
-      garminService.processAndSaveRecentDailySummaries();
+      // Call the service method with the reference date.
+      garminService.processAndSaveRecentDailySummaries(String.valueOf(refDate));
 
       // Capture the RecentDailySummaries object saved to MongoDB.
       ArgumentCaptor<RecentDailySummaries> captor = ArgumentCaptor.forClass(RecentDailySummaries.class);
@@ -391,16 +396,19 @@ class GarminServiceTest {
    }
 
    /**
-    * ❌ Test Case: Given no data, when processAndSaveRecentDailySummaries is called, then logs warning and skips saving.
+    * ❌ Test Case: Given no daily summary data, when processAndSaveRecentDailySummaries is called,
+    * then the method logs a warning and skips saving.
     */
    @Test
    void givenNoData_whenProcessAndSaveRecentDailySummaries_thenLogsWarningAndSkipsSaving() {
+      LocalDate refDate = LocalDate.of(2025, 1, 15);
       // Simulate no daily summaries found.
-      when(currentDaySummaryRepo.findTop7ByOrderByDayDesc()).thenReturn(List.of());
+      when(currentDaySummaryRepo.findTop7ByDayLessThanEqualOrderByDayDesc(refDate)).thenReturn(List.of());
 
-      garminService.processAndSaveRecentDailySummaries();
+      garminService.processAndSaveRecentDailySummaries(String.valueOf(refDate));
 
-      // Verify that the recentDailySummariesRepo.save method was never called.
+      // Verify that recentDailySummariesRepo.save was never called.
       verify(recentDailySummariesRepo, never()).save(any());
    }
+
 }

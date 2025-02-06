@@ -3,7 +3,6 @@ package com.backend.services;
 import static com.backend.utils.DataParsingUtils.*;
 import static com.backend.utils.SummaryUtils.*;
 
-import com.backend.exceptions.GarminDatabaseException;
 import com.backend.exceptions.GarminProcessingException;
 import com.backend.models.*;
 import com.backend.repos.MongoDB.*;
@@ -15,9 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 
 @Service
@@ -101,22 +98,29 @@ public class GarminService {
    }
 
    /**
+    * ✅ Process and save recent daily summaries (last 7 days) based on a reference date.
     *
-    * ✅ Process and save recent daily summaries (last 7 days).
+    * This method uses the provided reference date (in ISO format) to determine the period over which to gather
+    * the last 7 days of daily summaries, reformats them into a RecentDailySummaries object (each field becomes an array of 7 values),
+    * validates the result, and saves it to MongoDB.
+    *
+    * @param referenceDate the reference date (in ISO format, e.g. "2025-01-17") as a String.
     */
-   public void processAndSaveRecentDailySummaries() {
-      logger.info("Fetching last 7 days of daily summaries...");
-
-      List<CurrentDaySummary> last7Days = currentDaySummaryRepo.findTop7ByOrderByDayDesc();
+   public void processAndSaveRecentDailySummaries(String referenceDate) {
+      logger.info("Fetching daily summaries for the 7-day period ending at reference date {}...", referenceDate);
+      LocalDate refDate = LocalDate.parse(referenceDate);
+      // Create a mutable copy of the list returned by the repository
+      List<CurrentDaySummary> last7Days = new ArrayList<>(currentDaySummaryRepo.findTop7ByDayLessThanEqualOrderByDayDesc(refDate));
 
       if (last7Days.isEmpty()) {
-         logger.warn("No daily summary data found. Skipping RecentDailySummaries update.");
+         logger.warn("No daily summary data found for reference date {}. Skipping RecentDailySummaries update.", referenceDate);
          return;
       }
 
-      RecentDailySummaries recentSummary = mapToRecentDailySummaries(last7Days);
+      // Ensure the list is sorted descending.
+      last7Days.sort(Comparator.comparing(CurrentDaySummary::day).reversed());
 
-      // Validate and save
+      RecentDailySummaries recentSummary = mapToRecentDailySummaries(last7Days);
       validationService.validate(recentSummary);
       recentDailySummariesRepo.save(recentSummary);
 
