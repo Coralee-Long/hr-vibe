@@ -20,13 +20,19 @@ import java.util.List;
  * 2. GET /garmin/days/{day}
  *    - Retrieves a single day summary DTO for the specified date.
 
- * 3. GET /garmin/weeks/{referenceDate}
- *    - Retrieves a single week summary DTO based on a reference date.
+ * 3. GET /garmin/recent/{referenceDate}
+ *    - Retrieves the recent daily summaries (last 7 days) based on a reference date.
 
- * 4. GET /garmin/months
+ * 4. GET /garmin/weeks
+ *    - Retrieves an array of weekly summary DTOs. Supports an optional "limit" parameter to restrict the number of weeks.
+
+ * 5. GET /garmin/weeks/{referenceDate}
+ *    - Retrieves a single weekly summary DTO based on a reference date.
+
+ * 6. GET /garmin/months
  *    - Retrieves an array of monthly summary DTOs. Supports optional "month" and "year" parameters.
 
- * 5. GET /garmin/years
+ * 7. GET /garmin/years
  *    - Retrieves an array of yearly summary DTOs.
 
  * The controller uses DTOs to ensure that only the required fields are exposed to the frontend,
@@ -73,21 +79,33 @@ public class GarminRetrievalController {
     * @param referenceDate the reference date (in ISO format) to fetch the recent daily summaries.
     * @return ResponseEntity containing the RecentDailySummariesDTO.
     */
-   @GetMapping("/recents/{referenceDate}")
-   public ResponseEntity<RecentDailySummariesDTO> getRecentDailySummaries (@PathVariable String referenceDate) {
+   @GetMapping("/recent/{referenceDate}")
+   public ResponseEntity<RecentDailySummariesDTO> getRecentDailySummaries(@PathVariable String referenceDate) {
       logger.info("Fetching recent daily summaries for reference date {}...", referenceDate);
       return ResponseEntity.ok(retrievalService.getRecentDailySummaries(LocalDate.parse(referenceDate)));
    }
 
    /**
-    * Retrieves a week summary DTO based on a reference date.
+    * Retrieves an array of weekly summary DTOs.
+    *
+    * @param limit optional parameter to limit the number of weekly summaries returned.
+    * @return ResponseEntity containing the list of WeeklySummaryDTO objects.
+    */
+   @GetMapping("/weeks")
+   public ResponseEntity<List<WeeklySummaryDTO>> getAllWeekSummaries(@RequestParam(defaultValue = "30") int limit) {
+      logger.info("Fetching up to {} weekly summaries...", limit);
+      return ResponseEntity.ok(retrievalService.getAllWeekSummaries(limit));
+   }
+
+   /**
+    * Retrieves a weekly summary DTO based on the reference date.
     *
     * @param referenceDate the reference date to determine the week.
     * @return ResponseEntity containing the WeeklySummaryDTO.
     */
    @GetMapping("/weeks/{referenceDate}")
    public ResponseEntity<WeeklySummaryDTO> getWeekSummary(@PathVariable String referenceDate) {
-      logger.info("Fetching week summary for reference date {}...", referenceDate);
+      logger.info("Fetching weekly summary for reference date {}...", referenceDate);
       return ResponseEntity.ok(retrievalService.getWeekSummary(LocalDate.parse(referenceDate)));
    }
 

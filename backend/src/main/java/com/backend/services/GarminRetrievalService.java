@@ -39,17 +39,8 @@ public class GarminRetrievalService {
    private final WeeklySummaryRepo weeklySummaryRepo;
    private final MonthlySummaryRepo monthlySummaryRepo;
    private final YearlySummaryRepo yearlySummaryRepo;
-   private final RecentDailySummariesRepo recentDailySummariesRepo; // Added field for recent daily summaries
+   private final RecentDailySummariesRepo recentDailySummariesRepo;
 
-   /**
-    * Constructs a new GarminRetrievalService with the required repository dependencies.
-    *
-    * @param currentDaySummaryRepo Repository for current day summaries.
-    * @param weeklySummaryRepo Repository for weekly summaries.
-    * @param monthlySummaryRepo Repository for monthly summaries.
-    * @param yearlySummaryRepo Repository for yearly summaries.
-    * @param recentDailySummariesRepo Repository for recent daily summaries.
-    */
    public GarminRetrievalService(CurrentDaySummaryRepo currentDaySummaryRepo,
                                  WeeklySummaryRepo weeklySummaryRepo,
                                  MonthlySummaryRepo monthlySummaryRepo,
@@ -102,6 +93,20 @@ public class GarminRetrievalService {
       return recentDailySummariesRepo.findByLatestDay(referenceDate)
           .map(RecentDailySummariesDTO::fromModel)
           .orElseThrow(() -> new GarminProcessingException("No recent daily summaries found for " + referenceDate));
+   }
+
+   /**
+    * Retrieves a list of weekly summary DTOs up to the specified limit.
+    *
+    * @param limit the maximum number of weekly summaries to return.
+    * @return a List of WeeklySummaryDTO objects.
+    */
+   public List<WeeklySummaryDTO> getAllWeekSummaries(int limit) {
+      logger.info("Retrieving up to {} weekly summaries from MongoDB...", limit);
+      Pageable pageable = PageRequest.of(0, limit);
+      return weeklySummaryRepo.findAllByOrderByFirstDayDesc(pageable).stream()
+          .map(WeeklySummaryDTO::fromModel)
+          .collect(Collectors.toList());
    }
 
    /**

@@ -1,6 +1,6 @@
 package com.backend.controllers;
 
-import com.backend.services.GarminService;
+import com.backend.services.GarminProcessingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -19,21 +19,21 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * 📌 Test Summary for GarminProcessingController Integration Tests
- *
+
  * Endpoints:
  * 1. POST /garmin/process/days
  *    - ✅ givenValidParameters_whenProcessCurrentDaySummary_thenReturnsSuccessResponse
- *
+
  * 2. POST /garmin/process/weeks
  *    - ✅ givenValidParameters_whenProcessWeeklySummary_thenReturnsSuccessResponse
- *
+
  * 3. POST /garmin/process/months
  *    - ✅ givenValidParameters_whenProcessMonthlySummary_thenReturnsSuccessResponse
- *
+
  * 4. POST /garmin/process/years
  *    - ✅ givenValidParameters_whenProcessYearlySummary_thenReturnsSuccessResponse
- *
- * 5. POST /garmin/process/recents
+
+ * 5. POST /garmin/process/recent
  *    - ✅ givenValidDataAndReferenceDate_whenProcessAndSaveRecentDailySummaries_thenSavesSuccessfully
  *    - ❌ givenNoData_whenProcessAndSaveRecentDailySummaries_thenSkipsSaving
  */
@@ -42,7 +42,7 @@ class GarminProcessingControllerTest {
    private MockMvc mockMvc;
 
    @Mock
-   private GarminService garminService;
+   private GarminProcessingService garminProcessingService;
 
    @InjectMocks
    private GarminProcessingController controller;
@@ -62,7 +62,7 @@ class GarminProcessingControllerTest {
       String tableName = "days_summary";
 
       // Assume garminService.processAndSaveCurrentDaySummary runs without error.
-      doNothing().when(garminService).processAndSaveCurrentDaySummary(dbName, tableName);
+      doNothing().when(garminProcessingService).processAndSaveCurrentDaySummary(dbName, tableName);
 
       mockMvc.perform(post("/garmin/process/days")
                           .param("databaseName", dbName)
@@ -76,7 +76,7 @@ class GarminProcessingControllerTest {
       String dbName = "testDB";
       String tableName = "weeks_summary";
 
-      doNothing().when(garminService).processAndSaveWeeklySummary(dbName, tableName);
+      doNothing().when(garminProcessingService).processAndSaveWeeklySummary(dbName, tableName);
 
       mockMvc.perform(post("/garmin/process/weeks")
                           .param("databaseName", dbName)
@@ -90,7 +90,7 @@ class GarminProcessingControllerTest {
       String dbName = "testDB";
       String tableName = "months_summary";
 
-      doNothing().when(garminService).processAndSaveMonthlySummary(dbName, tableName);
+      doNothing().when(garminProcessingService).processAndSaveMonthlySummary(dbName, tableName);
 
       mockMvc.perform(post("/garmin/process/months")
                           .param("databaseName", dbName)
@@ -104,7 +104,7 @@ class GarminProcessingControllerTest {
       String dbName = "testDB";
       String tableName = "years_summary";
 
-      doNothing().when(garminService).processAndSaveYearlySummary(dbName, tableName);
+      doNothing().when(garminProcessingService).processAndSaveYearlySummary(dbName, tableName);
 
       mockMvc.perform(post("/garmin/process/years")
                           .param("databaseName", dbName)
@@ -118,9 +118,9 @@ class GarminProcessingControllerTest {
       // For this test, we simulate that the service method is called with a reference date.
       // We assume that garminService.processAndSaveRecentDailySummaries(String) works correctly.
       String refDate = "2025-01-17";
-      doNothing().when(garminService).processAndSaveRecentDailySummaries(refDate);
+      doNothing().when(garminProcessingService).processAndSaveRecentDailySummaries(refDate);
 
-      mockMvc.perform(post("/garmin/process/recents")
+      mockMvc.perform(post("/garmin/process/recent")
                           .param("referenceDate", refDate))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.message").value("Processed and saved RecentDailySummaries."));
@@ -132,9 +132,9 @@ class GarminProcessingControllerTest {
       String refDate = "2025-01-17";
       // You could have garminService throw a GarminProcessingException if no data is found.
       // For simplicity, assume it just returns without saving.
-      doNothing().when(garminService).processAndSaveRecentDailySummaries(refDate);
+      doNothing().when(garminProcessingService).processAndSaveRecentDailySummaries(refDate);
 
-      mockMvc.perform(post("/garmin/process/recents")
+      mockMvc.perform(post("/garmin/process/recent")
                           .param("referenceDate", refDate))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.message").value("Processed and saved RecentDailySummaries."));

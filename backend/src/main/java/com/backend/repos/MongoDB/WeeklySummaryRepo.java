@@ -1,10 +1,12 @@
 package com.backend.repos.MongoDB;
 
 import com.backend.models.WeeklySummary;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -21,4 +23,12 @@ public interface WeeklySummaryRepo extends MongoRepository<WeeklySummary, String
     * @return an Optional containing the WeeklySummary if found.
     */
    Optional<WeeklySummary> findByFirstDay(LocalDate firstDay);
+
+   /**
+    * Retrieves all weekly summaries sorted in descending order by firstDay.
+    *
+    * @param pageable the pagination information.
+    * @return a List of WeeklySummary objects.
+    */
+   List<WeeklySummary> findAllByOrderByFirstDayDesc (Pageable pageable);
 }

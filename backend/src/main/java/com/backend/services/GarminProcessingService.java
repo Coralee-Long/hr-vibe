@@ -18,9 +18,9 @@ import java.util.*;
 import java.util.function.Function;
 
 @Service
-public class GarminService {
+public class GarminProcessingService {
 
-   private static final Logger logger = LoggerFactory.getLogger(GarminService.class);
+   private static final Logger logger = LoggerFactory.getLogger(GarminProcessingService.class);
 
    private final GarminSQLiteRepo garminSQLiteRepo;
    private final CurrentDaySummaryRepo currentDaySummaryRepo;
@@ -30,13 +30,13 @@ public class GarminService {
    private final RecentDailySummariesRepo recentDailySummariesRepo;
    private final ValidationService validationService;
 
-   public GarminService(GarminSQLiteRepo garminSQLiteRepo,
-                        CurrentDaySummaryRepo currentDaySummaryRepo,
-                        WeeklySummaryRepo weeklySummaryRepo,
-                        MonthlySummaryRepo monthlySummaryRepo,
-                        YearlySummaryRepo yearlySummaryRepo,
-                        RecentDailySummariesRepo recentDailySummariesRepo,
-                        ValidationService validationService) {
+   public GarminProcessingService (GarminSQLiteRepo garminSQLiteRepo,
+                                   CurrentDaySummaryRepo currentDaySummaryRepo,
+                                   WeeklySummaryRepo weeklySummaryRepo,
+                                   MonthlySummaryRepo monthlySummaryRepo,
+                                   YearlySummaryRepo yearlySummaryRepo,
+                                   RecentDailySummariesRepo recentDailySummariesRepo,
+                                   ValidationService validationService) {
       this.garminSQLiteRepo = garminSQLiteRepo;
       this.currentDaySummaryRepo = currentDaySummaryRepo;
       this.weeklySummaryRepo = weeklySummaryRepo;
@@ -55,6 +55,7 @@ public class GarminService {
        String dateKey,
        Function<Map<String, Object>, T> mapper,
        MongoRepository<T, String> repo) {
+
       logger.info("Fetching data from SQLite: {}, table: {}", databaseName, tableName);
 
       List<Map<String, Object>> rawData;
@@ -68,16 +69,20 @@ public class GarminService {
          throw new GarminProcessingException("No data found in table: " + tableName);
       }
 
-      Optional<Map<String, Object>> latestData = getLatestData(rawData, dateKey);
-      if (latestData.isEmpty()) {
-         throw new GarminProcessingException("No valid data found for table: " + tableName);
+      // Convert all raw data entries into summary objects.
+      // Note: The mapper is expected to produce DTOs with dates as ISO strings.
+      List<T> summaries = rawData.stream()
+          .map(mapper)
+          .peek(validationService::validate)
+          .toList();
+
+      if (summaries.isEmpty()) {
+         throw new GarminProcessingException("No valid summaries could be mapped for table: " + tableName);
       }
 
-      T summary = mapper.apply(latestData.get());
-      validationService.validate(summary);
-      repo.save(summary);
+      repo.saveAll(summaries); // Save the full list of summaries at once
 
-      logger.info("✅ Successfully saved {} summary for {}", summary.getClass().getSimpleName(), dateKey);
+      logger.info("✅ Successfully saved {} summaries for {}", summaries.size(), dateKey);
    }
 
    // 🔹 Processing Methods - Now using the `DataParsingUtils` mapping methods
@@ -109,7 +114,7 @@ public class GarminService {
    public void processAndSaveRecentDailySummaries(String referenceDate) {
       logger.info("Fetching daily summaries for the 7-day period ending at reference date {}...", referenceDate);
       LocalDate refDate = LocalDate.parse(referenceDate);
-      // Create a mutable copy of the list returned by the repository
+      // Create a mutable copy of the list returned by the repository.
       List<CurrentDaySummary> last7Days = new ArrayList<>(currentDaySummaryRepo.findTop7ByDayLessThanEqualOrderByDayDesc(refDate));
 
       if (last7Days.isEmpty()) {

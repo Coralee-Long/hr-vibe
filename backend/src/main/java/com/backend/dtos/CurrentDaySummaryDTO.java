@@ -14,7 +14,7 @@ public record CurrentDaySummaryDTO(
     String id, // Unique MongoDB ID
 
     @NotNull
-    LocalDate day, // Specific date for the summary (YYYY-MM-DD)
+    String day, // Specific date for the summary (YYYY-MM-DD)
 
     @NotNull
     BaseSummaryDTO summary // Embedded summary data containing health metrics
@@ -28,7 +28,7 @@ public record CurrentDaySummaryDTO(
     public static CurrentDaySummaryDTO fromModel(com.backend.models.CurrentDaySummary model) {
         return new CurrentDaySummaryDTO(
             model.id(),
-            model.day(),
+            model.day().toString(), // Convert LocalDate to String
             BaseSummaryDTO.fromModel(model.summary())
         );
     }

@@ -1,40 +1,39 @@
 package com.backend.controllers;
 
 import com.backend.exceptions.GarminProcessingException;
-import com.backend.services.GarminService;
+import com.backend.services.GarminProcessingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.util.Map;
 
 /**
  * GarminProcessingController is responsible for processing SQLite data and storing the results
  * into different MongoDB collections. Each endpoint triggers the processing of an array (i.e. a collection)
  * of summary objects corresponding to a specific period (days, weeks, months, years).
- *
+
  * Endpoints:
  * 1. POST /garmin/process/days
  *    - Processes and saves an array of current day summary objects from SQLite into the MongoDB collection.
- *
+
  * 2. POST /garmin/process/weeks
  *    - Processes and saves an array of weekly summary objects from SQLite into the MongoDB collection.
- *
+
  * 3. POST /garmin/process/months
  *    - Processes and saves an array of monthly summary objects from SQLite into the MongoDB collection.
- *
+
  * 4. POST /garmin/process/years
  *    - Processes and saves an array of yearly summary objects from SQLite into the MongoDB collection.
- *
- * 5. POST /garmin/process/recents
+
+ * 5. POST /garmin/process/recent
  *    - Processes and saves recent daily summaries from SQLite into MongoDB.
  *      The endpoint accepts a reference date as a parameter, retrieves the last 7 days of day summaries
  *      relative to that date, reformats them into a single RecentDailySummaries object (each numeric field is an array of 7 values),
  *      and saves that object.
- *
+
  * Each endpoint returns a JSON response indicating success or an error message with details.
  * Custom exceptions thrown from the service layer are caught and returned with appropriate HTTP status codes.
  */
@@ -43,10 +42,10 @@ import java.util.Map;
 public class GarminProcessingController {
 
    private static final Logger logger = LoggerFactory.getLogger(GarminProcessingController.class);
-   private final GarminService garminService;
+   private final GarminProcessingService garminProcessingService;
 
-   public GarminProcessingController(GarminService garminService) {
-      this.garminService = garminService;
+   public GarminProcessingController (GarminProcessingService garminProcessingService) {
+      this.garminProcessingService = garminProcessingService;
    }
 
    /**
@@ -60,9 +59,11 @@ public class GarminProcessingController {
    public ResponseEntity<Map<String, String>> processCurrentDaySummary(
        @RequestParam String databaseName,
        @RequestParam String tableName) {
-      logger.info("Starting processing for CurrentDaySummaries. DB='{}', Table='{}'", databaseName, tableName);
+
+      logger.info("Received request: databaseName={}, tableName={}", databaseName, tableName);
+
       try {
-         garminService.processAndSaveCurrentDaySummary(databaseName, tableName);
+         garminProcessingService.processAndSaveCurrentDaySummary(databaseName, tableName);
          logger.info("Successfully processed CurrentDaySummaries.");
          return ResponseEntity.ok(Map.of("message", "Processed and saved an array of CurrentDaySummary objects."));
       } catch (GarminProcessingException e) {
@@ -70,7 +71,7 @@ public class GarminProcessingController {
          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
              .body(Map.of("error", "Failed to process CurrentDaySummaries.", "details", e.getMessage()));
       } catch (Exception e) {
-         logger.error("Unexpected error processing CurrentDaySummaries: {}", e.getMessage(), e);
+         logger.error("Unexpected error processing CurrentDaySummaries", e);
          return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
              .body(Map.of("error", "Unexpected error processing CurrentDaySummaries.", "details", e.getMessage()));
       }
@@ -89,7 +90,7 @@ public class GarminProcessingController {
        @RequestParam String tableName) {
       logger.info("Starting processing for WeeklySummaries. DB='{}', Table='{}'", databaseName, tableName);
       try {
-         garminService.processAndSaveWeeklySummary(databaseName, tableName);
+         garminProcessingService.processAndSaveWeeklySummary(databaseName, tableName);
          logger.info("Successfully processed WeeklySummaries.");
          return ResponseEntity.ok(Map.of("message", "Processed and saved an array of WeeklySummary objects."));
       } catch (GarminProcessingException e) {
@@ -116,7 +117,7 @@ public class GarminProcessingController {
        @RequestParam String tableName) {
       logger.info("Starting processing for MonthlySummaries. DB='{}', Table='{}'", databaseName, tableName);
       try {
-         garminService.processAndSaveMonthlySummary(databaseName, tableName);
+         garminProcessingService.processAndSaveMonthlySummary(databaseName, tableName);
          logger.info("Successfully processed MonthlySummaries.");
          return ResponseEntity.ok(Map.of("message", "Processed and saved an array of MonthlySummary objects."));
       } catch (GarminProcessingException e) {
@@ -143,7 +144,7 @@ public class GarminProcessingController {
        @RequestParam String tableName) {
       logger.info("Starting processing for YearlySummaries. DB='{}', Table='{}'", databaseName, tableName);
       try {
-         garminService.processAndSaveYearlySummary(databaseName, tableName);
+         garminProcessingService.processAndSaveYearlySummary(databaseName, tableName);
          logger.info("Successfully processed YearlySummaries.");
          return ResponseEntity.ok(Map.of("message", "Processed and saved an array of YearlySummary objects."));
       } catch (GarminProcessingException e) {
@@ -164,12 +165,12 @@ public class GarminProcessingController {
     * @param referenceDate the reference date to determine the 7-day period.
     * @return ResponseEntity containing a JSON success message or error details.
     */
-   @PostMapping("/process/recents")
+   @PostMapping("/process/recent")
    public ResponseEntity<Map<String, String>> processAndSaveRecentDailySummaries(
        @RequestParam String referenceDate) {
       logger.info("Starting processing for RecentDailySummaries with reference date '{}'.", referenceDate);
       try {
-         garminService.processAndSaveRecentDailySummaries(referenceDate);
+         garminProcessingService.processAndSaveRecentDailySummaries(referenceDate);
          logger.info("Successfully processed RecentDailySummaries.");
          return ResponseEntity.ok(Map.of("message", "Processed and saved RecentDailySummaries."));
       } catch (GarminProcessingException e) {

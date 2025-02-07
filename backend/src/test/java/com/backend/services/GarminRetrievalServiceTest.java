@@ -1,10 +1,5 @@
 package com.backend.services;
 
-import com.backend.dtos.CurrentDaySummaryDTO;
-import com.backend.dtos.MonthlySummaryDTO;
-import com.backend.dtos.RecentDailySummariesDTO;
-import com.backend.dtos.WeeklySummaryDTO;
-import com.backend.dtos.YearlySummaryDTO;
 import com.backend.exceptions.GarminProcessingException;
 import com.backend.models.CurrentDaySummary;
 import com.backend.models.MonthlySummary;
@@ -16,6 +11,11 @@ import com.backend.repos.MongoDB.MonthlySummaryRepo;
 import com.backend.repos.MongoDB.WeeklySummaryRepo;
 import com.backend.repos.MongoDB.YearlySummaryRepo;
 import com.backend.repos.MongoDB.RecentDailySummariesRepo;
+import com.backend.dtos.CurrentDaySummaryDTO;
+import com.backend.dtos.MonthlySummaryDTO;
+import com.backend.dtos.RecentDailySummariesDTO;
+import com.backend.dtos.WeeklySummaryDTO;
+import com.backend.dtos.YearlySummaryDTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -36,32 +36,29 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link com.backend.services.GarminRetrievalService}.
- *
- * <p><b>Table of Contents:</b>
- * <ul>
- *   <li>1️⃣ <b>getAllDaySummaries(int limit)</b>
- *       - ✅ Returns a valid list of day summary DTOs when data is available.
- *   <li>2️⃣ <b>getDaySummary(LocalDate day)</b>
- *       - ✅ Returns a valid day summary DTO for a given date.
- *       - ❌ Throws {@link GarminProcessingException} when no summary is found.
- *   <li>3️⃣ <b>getRecentDailySummaries(LocalDate referenceDate)</b>
- *       - ✅ Returns a valid RecentDailySummariesDTO (loaded from JSON) when data is available.
- *       - ❌ Throws {@link GarminProcessingException} when no recent daily summaries are found.
- *   <li>4️⃣ <b>getWeekSummary(LocalDate referenceDate)</b>
- *       - ✅ Returns a valid weekly summary DTO (loaded from JSON) when data is available.
- *       - ❌ Throws {@link GarminProcessingException} when no weekly summary is found.
- *   <li>5️⃣ <b>getMonthSummaries(Integer month, Integer year)</b>
- *       - ✅ Returns a valid list of monthly summary DTOs (loaded from JSON) when data is available.
- *   <li>6️⃣ <b>getYearSummaries()</b>
- *       - ✅ Returns a valid list of yearly summary DTOs (loaded from JSON) when data is available.
- * </ul>
- * </p>
+
+ * Table of Contents:
+ * 1️⃣ getAllDaySummaries(int limit)
+ *    - ✅ Returns a valid list of day summary DTOs when data is available.
+ * 2️⃣ getDaySummary(LocalDate day)
+ *    - ✅ Returns a valid day summary DTO for a given date.
+ *    - ❌ Throws GarminProcessingException when no summary is found.
+ * 3️⃣ getRecentDailySummaries(LocalDate referenceDate)
+ *    - ✅ Returns a valid RecentDailySummariesDTO (loaded from JSON) when data is available.
+ *    - ❌ Throws GarminProcessingException when no recent daily summaries are found.
+ * 4️⃣ getWeekSummary(LocalDate referenceDate)
+ *    - ✅ Returns a valid weekly summary DTO (loaded from JSON) when data is available.
+ *    - ❌ Throws GarminProcessingException when no weekly summary is found.
+ * 5️⃣ getAllWeekSummaries(int limit)
+ *    - ✅ Returns a valid list of weekly summary DTOs when data is available.
+ * 6️⃣ getMonthSummaries(Integer month, Integer year)
+ *    - ✅ Returns a valid list of monthly summary DTOs (loaded from JSON) when data is available.
+ * 7️⃣ getYearSummaries()
+ *    - ✅ Returns a valid list of yearly summary DTOs (loaded from JSON) when data is available.
  */
 class GarminRetrievalServiceTest {
 
@@ -81,14 +78,14 @@ class GarminRetrievalServiceTest {
            60, 80, 70,                 // rhrMin, rhrMax, rhrAvg
            55, 75, 65,                 // inactiveHrMin, inactiveHrMax, inactiveHrAvg
            2000, 2500, 1500, 1800, 500, 300, // caloriesAvg, caloriesGoal, caloriesBmrAvg, caloriesConsumedAvg, caloriesActiveAvg, activitiesCalories
-           60.0, 65.0, 62.0,           // weightMin, weightMax, weightAvg (doubles remain as doubles)
+           60.0, 65.0, 62.0,           // weightMin, weightMax, weightAvg
            3000, 2800, 2900, 100, 110,  // hydrationGoal, hydrationIntake, hydrationAvg, sweatLoss, sweatLossAvg
            20, 80, 30,                 // bbMin, bbMax, stressAvg
            10, 20, 15, 85, 90,          // rrMin, rrMax, rrWakingAvg, spo2Min, spo2Avg
            "08:00:00", "09:00:00", "08:30:00", // sleepMin, sleepMax, sleepAvg
            "01:00:00", "01:15:00", "01:05:00", // remSleepMin, remSleepMax, remSleepAvg
            10000, 9000, 10, 8,         // stepsGoal, steps, floorsGoal, floors
-           2, 5.0,                    // activities, activitiesDistance (activitiesDistance remains as double)
+           2, 5.0,                    // activities, activitiesDistance
            "00:30:00", "00:45:00", "00:20:00", "00:10:00" // intensityTimeGoal, intensityTime, moderateActivityTime, vigorousActivityTime
        );
 
@@ -139,9 +136,7 @@ class GarminRetrievalServiceTest {
 
    /**
     * 1️⃣ Test getAllDaySummaries(int limit)
-    * <ul>
-    *   <li>✅ Returns a valid list of day summary DTOs when data is available.
-    * </ul>
+    * - ✅ Returns a valid list of day summary DTOs when data is available.
     */
    @Test
    void testGetAllDaySummaries() throws Exception {
@@ -169,10 +164,8 @@ class GarminRetrievalServiceTest {
 
    /**
     * 2️⃣ Test getDaySummary(LocalDate day)
-    * <ul>
-    *   <li>✅ Returns a valid day summary DTO for a given date.
-    *   <li>❌ Throws {@link GarminProcessingException} when no summary is found.
-    * </ul>
+    * - ✅ Returns a valid day summary DTO for a given date.
+    * - ❌ Throws GarminProcessingException when no summary is found.
     */
    @Test
    void testGetDaySummaryFound() throws Exception {
@@ -210,10 +203,8 @@ class GarminRetrievalServiceTest {
 
    /**
     * 3️⃣ Test getRecentDailySummaries(LocalDate referenceDate)
-    * <ul>
-    *   <li>✅ Returns a valid RecentDailySummariesDTO (loaded from JSON) when data is available.
-    *   <li>❌ Throws {@link GarminProcessingException} when no recent daily summaries are found.
-    * </ul>
+    * - ✅ Returns a valid RecentDailySummariesDTO (loaded from JSON) when data is available.
+    * - ❌ Throws GarminProcessingException when no recent daily summaries are found.
     */
    @Test
    void testGetRecentDailySummariesFound() throws Exception {
@@ -303,10 +294,8 @@ class GarminRetrievalServiceTest {
 
    /**
     * 4️⃣ Test getWeekSummary(LocalDate referenceDate)
-    * <ul>
-    *   <li>✅ Returns a valid weekly summary DTO (loaded from JSON) when data is available.
-    *   <li>❌ Throws GarminProcessingException when no weekly summary is found.
-    * </ul>
+    * - ✅ Returns a valid weekly summary DTO (loaded from JSON) when data is available.
+    * - ❌ Throws GarminProcessingException when no weekly summary is found.
     */
    @Test
    void testGetWeekSummaryFound() throws Exception {
@@ -343,10 +332,38 @@ class GarminRetrievalServiceTest {
    }
 
    /**
-    * 5️⃣ Test getMonthSummaries(Integer month, Integer year)
-    * <ul>
-    *   <li>✅ Returns a valid list of monthly summary DTOs (loaded from JSON) when data is available.
-    * </ul>
+    * 5️⃣ Test getAllWeekSummaries(int limit)
+    * - ✅ Returns a valid list of weekly summary DTOs when data is available.
+    */
+   @Test
+   void testGetAllWeekSummaries() throws Exception {
+      // GIVEN: A dummy WeeklySummary model with a fake mongo id.
+      LocalDate dummyDate = LocalDate.of(2023, 5, 10);
+      WeeklySummary dummyModel = new WeeklySummary("mongoId_week", dummyDate, dummyBaseSummaryModel);
+      List<WeeklySummary> dummyList = Collections.singletonList(dummyModel);
+      Pageable pageable = PageRequest.of(0, 5);
+      when(weeklySummaryRepo.findAllByOrderByFirstDayDesc(any(Pageable.class))).thenReturn(dummyList);
+
+      // Load expected DTO from JSON.
+      List<WeeklySummaryDTO> expectedDTOs = loadWeeksSummaryDTOsFromJson();
+      WeeklySummaryDTO expectedDTO = expectedDTOs.get(0);
+
+      try (MockedStatic<WeeklySummaryDTO> mockedConversion = Mockito.mockStatic(WeeklySummaryDTO.class)) {
+         mockedConversion.when(() -> WeeklySummaryDTO.fromModel(dummyModel)).thenReturn(expectedDTO);
+
+         // WHEN: Calling the service method.
+         List<WeeklySummaryDTO> result = service.getAllWeekSummaries(5);
+
+         // THEN: The result should not be null, have the expected size, and match the expected DTO.
+         assertNotNull(result);
+         assertEquals(1, result.size());
+         assertEquals(expectedDTO, result.get(0));
+      }
+   }
+
+   /**
+    * 6️⃣ Test getMonthSummaries(Integer month, Integer year)
+    * - ✅ Returns a valid list of monthly summary DTOs (loaded from JSON) when data is available.
     */
    @Test
    void testGetMonthSummaries() throws Exception {
@@ -372,10 +389,8 @@ class GarminRetrievalServiceTest {
    }
 
    /**
-    * 6️⃣ Test getYearSummaries()
-    * <ul>
-    *   <li>✅ Returns a valid list of yearly summary DTOs (loaded from JSON) when data is available.
-    * </ul>
+    * 7️⃣ Test getYearSummaries()
+    * - ✅ Returns a valid list of yearly summary DTOs (loaded from JSON) when data is available.
     */
    @Test
    void testGetYearSummaries() throws Exception {

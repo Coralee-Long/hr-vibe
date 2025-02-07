@@ -14,7 +14,7 @@ public record YearlySummaryDTO(
     String id, // Unique MongoDB ID
 
     @NotNull
-    LocalDate firstDay, // First day of the year (YYYY-01-01)
+    String firstDay, // First day of the year (YYYY-01-01)
 
     @NotNull
     BaseSummaryDTO summary // Embedded validated summary data
@@ -28,7 +28,7 @@ public record YearlySummaryDTO(
     public static YearlySummaryDTO fromModel(com.backend.models.YearlySummary model) {
         return new YearlySummaryDTO(
             model.id(),
-            model.firstDay(),
+            model.firstDay().toString(), // Convert LocalDate to String
             BaseSummaryDTO.fromModel(model.summary())
         );
     }

@@ -13,7 +13,7 @@ public record RecentDailySummariesDTO(
     String id, // Unique MongoDB ID
 
     @NotNull
-    LocalDate latestDay, // Most recent date in the dataset
+    String latestDay, // Most recent date in the dataset
 
     // ------ Heart Rate ----- //
     @Size(min = 7, max = 7)
@@ -138,7 +138,7 @@ public record RecentDailySummariesDTO(
     public static RecentDailySummariesDTO fromModel (RecentDailySummaries model) {
         return new RecentDailySummariesDTO(
             model.id(),
-            model.latestDay(),
+            model.latestDay().toString(), // Convert LocalDate to String
             model.hrMin(), model.hrMax(), model.hrAvg(),
             model.rhrMin(), model.rhrMax(), model.rhrAvg(),
             model.inactiveHrMin(), model.inactiveHrMax(), model.inactiveHrAvg(),

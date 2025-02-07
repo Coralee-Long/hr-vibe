@@ -2,6 +2,7 @@ package com.backend.repos.MongoDB;
 
 import com.backend.models.MonthlySummary;
 import org.springframework.data.mongodb.repository.MongoRepository;
+import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,5 +21,6 @@ public interface MonthlySummaryRepo extends MongoRepository<MonthlySummary, Stri
     * @param year the year.
     * @return a List of MonthlySummary objects that match the month and year.
     */
+   @Query ("{ '$expr': { '$and': [ { '$eq': [ { '$month': '$firstDay' }, ?0 ] }, { '$eq': [ { '$year': '$firstDay' }, ?1 ] } ] } }")
    List<MonthlySummary> findByMonthAndYear(Integer month, Integer year);
 }

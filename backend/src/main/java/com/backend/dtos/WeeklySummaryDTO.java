@@ -14,7 +14,7 @@ public record WeeklySummaryDTO(
     String id, // Unique MongoDB ID
 
     @NotNull
-    LocalDate firstDay, // Start date of the week (YYYY-MM-DD)
+    String firstDay, // Start date of the week (YYYY-MM-DD)
 
     @NotNull
     BaseSummaryDTO summary // Embedded validated summary data
@@ -28,7 +28,7 @@ public record WeeklySummaryDTO(
     public static WeeklySummaryDTO fromModel(com.backend.models.WeeklySummary model) {
         return new WeeklySummaryDTO(
             model.id(),
-            model.firstDay(),
+            model.firstDay().toString(), // Convert LocalDate to String
             BaseSummaryDTO.fromModel(model.summary())
         );
     }
