@@ -182,5 +182,4 @@ public class GarminProcessingController {
              .body(Map.of("error", "Unexpected error processing RecentDailySummaries.", "details", e.getMessage()));
       }
    }
-
 }

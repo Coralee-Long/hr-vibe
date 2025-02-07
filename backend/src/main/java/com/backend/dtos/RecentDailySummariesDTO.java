@@ -1,5 +1,6 @@
 package com.backend.dtos;
 
+import com.backend.models.RecentDailySummaries;
 import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 import java.util.List;
@@ -113,7 +114,7 @@ public record RecentDailySummariesDTO(
     @Size(min = 7, max = 7)
     List<@PositiveOrZero Integer> stepsGoal, // Last 7 days of steps goal
     @Size(min = 7, max = 7)
-    List<@PositiveOrZero Double> steps, // Last 7 days of total steps taken
+    List<@PositiveOrZero Integer> steps, // Last 7 days of total steps taken
     @Size(min = 7, max = 7)
     List<@PositiveOrZero Integer> floorsGoal, // Last 7 days of floors climbed goal
     @Size(min = 7, max = 7)
@@ -133,4 +134,28 @@ public record RecentDailySummariesDTO(
     List<@Pattern(regexp = TIME_PATTERN, message = "Invalid time format (HH:MM:SS)") String> moderateActivityTime, // Last 7 days of total moderate activity time (HH:MM:SS)
     @Size(min = 7, max = 7)
     List<@Pattern(regexp = TIME_PATTERN, message = "Invalid time format (HH:MM:SS)") String> vigorousActivityTime // Last 7 days of total vigorous activity time (HH:MM:SS)
-) {}
+)  {
+    public static RecentDailySummariesDTO fromModel (RecentDailySummaries model) {
+        return new RecentDailySummariesDTO(
+            model.id(),
+            model.latestDay(),
+            model.hrMin(), model.hrMax(), model.hrAvg(),
+            model.rhrMin(), model.rhrMax(), model.rhrAvg(),
+            model.inactiveHrMin(), model.inactiveHrMax(), model.inactiveHrAvg(),
+            model.caloriesAvg(), model.caloriesGoal(), model.caloriesBmrAvg(),
+            model.caloriesConsumedAvg(), model.caloriesActiveAvg(), model.activitiesCalories(),
+            model.weightMin(), model.weightMax(), model.weightAvg(),
+            model.hydrationGoal(), model.hydrationIntake(), model.hydrationAvg(),
+            model.sweatLoss(), model.sweatLossAvg(),
+            model.bbMin(), model.bbMax(), model.stressAvg(),
+            model.rrMin(), model.rrMax(), model.rrWakingAvg(),
+            model.spo2Min(), model.spo2Avg(),
+            model.sleepMin(), model.sleepMax(), model.sleepAvg(),
+            model.remSleepMin(), model.remSleepMax(), model.remSleepAvg(),
+            model.stepsGoal(), model.steps(), model.floorsGoal(), model.floors(),
+            model.activities(), model.activitiesDistance(),
+            model.intensityTimeGoal(), model.intensityTime(),
+            model.moderateActivityTime(), model.vigorousActivityTime()
+        );
+    }
+}

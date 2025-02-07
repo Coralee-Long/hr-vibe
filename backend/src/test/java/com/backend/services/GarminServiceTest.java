@@ -94,19 +94,19 @@ class GarminServiceTest {
       // reset(garminSQLiteRepo, currentDaySummaryRepo, weeklySummaryRepo, monthlySummaryRepo, yearlySummaryRepo, validationService);
 
       // Load daily summary mock data
-      String jsonDayData = new String(Files.readAllBytes(Paths.get("src/test/resources/sqlite_mock_days_summary.json")));
+      String jsonDayData = new String(Files.readAllBytes(Paths.get("src/test/resources/mocks/models/sqlite_mock_days_summary.json")));
       mockSQLiteDataDay = DataParsingUtils.JsonUtils.parseJsonToList(jsonDayData);
 
       // Load weekly summary mock data
-      String jsonWeekData = new String(Files.readAllBytes(Paths.get("src/test/resources/sqlite_mock_weeks_summary.json")));
+      String jsonWeekData = new String(Files.readAllBytes(Paths.get("src/test/resources/mocks/models/sqlite_mock_weeks_summary.json")));
       mockSQLiteDataWeek = DataParsingUtils.JsonUtils.parseJsonToList(jsonWeekData);
 
       // Load monthly summary mock data
-      String jsonMonthData = new String(Files.readAllBytes(Paths.get("src/test/resources/sqlite_mock_months_summary.json")));
+      String jsonMonthData = new String(Files.readAllBytes(Paths.get("src/test/resources/mocks/models/sqlite_mock_months_summary.json")));
       mockSQLiteDataMonth = DataParsingUtils.JsonUtils.parseJsonToList(jsonMonthData);
 
       // Load yearly summary mock data
-      String jsonYearData = new String(Files.readAllBytes(Paths.get("src/test/resources/sqlite_mock_years_summary.json")));
+      String jsonYearData = new String(Files.readAllBytes(Paths.get("src/test/resources/mocks/models/sqlite_mock_years_summary.json")));
       mockSQLiteDataYear = DataParsingUtils.JsonUtils.parseJsonToList(jsonYearData);
    }
 
@@ -357,7 +357,7 @@ class GarminServiceTest {
 
       // Load the expected RecentDailySummaries from the mock file using the configured mapper.
       RecentDailySummaries expectedRecent = mapper.readValue(
-          Paths.get("src/test/resources/recent_daily_summaries_mock.json").toFile(),
+          Paths.get("src/test/resources/mocks/models/recent_daily_summaries_mock.json").toFile(),
           RecentDailySummaries.class
                                                             );
 
