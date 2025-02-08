@@ -1,13 +1,11 @@
 package com.backend.services;
 
-import static com.backend.utils.DataParsingUtils.*;
-import static com.backend.utils.SummaryUtils.*;
-
 import com.backend.exceptions.GarminProcessingException;
 import com.backend.models.CurrentDaySummary;
 import com.backend.models.MonthlySummary;
 import com.backend.models.RecentDailySummaries;
 import com.backend.models.WeeklySummary;
+import com.backend.models.YearlySummary;
 import com.backend.repos.MongoDB.CurrentDaySummaryRepo;
 import com.backend.repos.MongoDB.MonthlySummaryRepo;
 import com.backend.repos.MongoDB.WeeklySummaryRepo;
@@ -21,7 +19,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.repository.MongoRepository;
@@ -57,27 +54,15 @@ public class GarminProcessingService {
    }
 
    /**
-    * Generic method to process, validate, and save summaries into MongoDB.
-    *
-    * @param databaseName the SQLite database name.
-    * @param tableName the table name containing summary data.
-    * @param dateKey a key used for logging purposes.
-    * @param mapper a function that maps raw data into a domain model.
-    * @param repo the MongoRepository to use for saving.
+    * Processes and saves current day summaries.
+    * Duplicate check: uses the 'day' field.
     */
-   private <T> void processAndSaveSummary(
-       String databaseName,
-       String tableName,
-       String dateKey,
-       Function<Map<String, Object>, T> mapper,
-       MongoRepository<T, String> repo) {
-
-      logger.info("Fetching data from SQLite: {}, table: {}", databaseName, tableName);
-
+   public void processAndSaveCurrentDaySummary(String databaseName, String tableName) {
       List<Map<String, Object>> rawData;
       try {
          rawData = garminSQLiteRepo.fetchTableData(databaseName, tableName);
       } catch (RuntimeException e) {
+         // Wrap any runtime exception in a GarminProcessingException
          throw new GarminProcessingException("Failed to process summary for " + tableName, e);
       }
 
@@ -85,65 +70,96 @@ public class GarminProcessingService {
          throw new GarminProcessingException("No data found in table: " + tableName);
       }
 
-      // Convert raw data into summary objects.
-      List<T> summaries = rawData.stream()
-          .map(mapper)
-          .peek(validationService::validate)
+      List<CurrentDaySummary> summaries = rawData.stream()
+          .map(DataParsingUtils::mapToCurrentDaySummary)
           .toList();
 
-      if (summaries.isEmpty()) {
-         throw new GarminProcessingException("No valid summaries could be mapped for table: " + tableName);
+      for (CurrentDaySummary summary : summaries) {
+         validationService.validate(summary);
+         Optional<CurrentDaySummary> existing = currentDaySummaryRepo.findByDay(summary.day());
+         if (existing.isPresent()) {
+            CurrentDaySummary updated = mergeCurrentDay(existing.get(), summary);
+            currentDaySummaryRepo.save(updated);
+         } else {
+            currentDaySummaryRepo.insert(summary);
+         }
       }
-
-      repo.saveAll(summaries); // Save all summaries at once
-
-      logger.info("✅ Successfully saved {} summaries for {}", summaries.size(), dateKey);
+      logger.info("✅ Successfully processed and saved CurrentDaySummaries.");
    }
 
-   // Processing methods using the generic method
-   public void processAndSaveCurrentDaySummary(String db, String table) {
-      processAndSaveSummary(db, table, "day", DataParsingUtils::mapToCurrentDaySummary, currentDaySummaryRepo);
-   }
-
-   public void processAndSaveWeeklySummary(String db, String table) {
-      processAndSaveSummary(db, table, "first_day", DataParsingUtils::mapToWeeklySummary, weeklySummaryRepo);
+   /**
+    * Processes and saves weekly summaries.
+    * Duplicate check: uses the 'firstDay' field.
+    */
+   public void processAndSaveWeeklySummary(String databaseName, String tableName) {
+      List<Map<String, Object>> rawData = garminSQLiteRepo.fetchTableData(databaseName, tableName);
+      if (rawData.isEmpty()) {
+         throw new GarminProcessingException("No data found in table: " + tableName);
+      }
+      List<WeeklySummary> summaries = rawData.stream()
+          .map(DataParsingUtils::mapToWeeklySummary)
+          .toList();
+      for (WeeklySummary summary : summaries) {
+         validationService.validate(summary);
+         Optional<WeeklySummary> existing = weeklySummaryRepo.findByFirstDay(summary.firstDay());
+         if (existing.isPresent()) {
+            WeeklySummary updated = mergeWeekly(existing.get(), summary);
+            weeklySummaryRepo.save(updated);
+         } else {
+            weeklySummaryRepo.insert(summary);
+         }
+      }
+      logger.info("✅ Successfully processed and saved WeeklySummaries.");
    }
 
    /**
     * Processes and saves monthly summaries.
-    *
-    * <p>This method retrieves raw data from SQLite, maps it to MonthlySummary objects,
-    * checks for duplicates by the firstDay field, and either updates an existing record or inserts a new one.
-    *
-    * @param databaseName the SQLite database name.
-    * @param tableName the table name containing monthly summary data.
+    * Duplicate check: uses the 'firstDay' field.
     */
    public void processAndSaveMonthlySummary(String databaseName, String tableName) {
-      // Retrieve and parse raw data from SQLite.
-      List<MonthlySummary> summaries = parseData(databaseName, tableName);
-
+      List<MonthlySummary> summaries = parseMonthlyData(databaseName, tableName);
       for (MonthlySummary summary : summaries) {
          validationService.validate(summary);
-         // Check if a record with the same firstDay already exists.
          Optional<MonthlySummary> existing = monthlySummaryRepo.findByFirstDay(summary.firstDay());
-
          if (existing.isPresent()) {
-            // Update the existing document using a merge of the existing and new data.
-            MonthlySummary updated = merge(existing.get(), summary);
+            MonthlySummary updated = mergeMonthly(existing.get(), summary);
             monthlySummaryRepo.save(updated);
          } else {
-            // Insert a new document.
             monthlySummaryRepo.insert(summary);
          }
       }
-   }
-
-   public void processAndSaveYearlySummary(String db, String table) {
-      processAndSaveSummary(db, table, "first_day", DataParsingUtils::mapToYearlySummary, yearlySummaryRepo);
+      logger.info("✅ Successfully processed and saved MonthlySummaries.");
    }
 
    /**
-    * Process and save recent daily summaries (last 7 days) based on a reference date.
+    * Processes and saves yearly summaries.
+    * Duplicate check: uses the 'firstDay' field.
+    */
+   public void processAndSaveYearlySummary(String databaseName, String tableName) {
+      List<Map<String, Object>> rawData = garminSQLiteRepo.fetchTableData(databaseName, tableName);
+      if (rawData.isEmpty()) {
+         throw new GarminProcessingException("No data found in table: " + tableName);
+      }
+      List<YearlySummary> summaries = rawData.stream()
+          .map(DataParsingUtils::mapToYearlySummary)
+          .toList();
+      for (YearlySummary summary : summaries) {
+         validationService.validate(summary);
+         Optional<YearlySummary> existing = yearlySummaryRepo.findByFirstDay(summary.firstDay());
+         if (existing.isPresent()) {
+            YearlySummary updated = mergeYearly(existing.get(), summary);
+            yearlySummaryRepo.save(updated);
+         } else {
+            yearlySummaryRepo.insert(summary);
+         }
+      }
+      logger.info("✅ Successfully processed and saved YearlySummaries.");
+   }
+
+   /**
+    * Processes and saves recent daily summaries (last 7 days) based on a reference date.
+    *
+    * Duplicate check: uses the 'latestDay' field.
     *
     * @param referenceDate the reference date (in ISO format, e.g. "2025-01-17") as a String.
     */
@@ -160,22 +176,24 @@ public class GarminProcessingService {
       // Ensure the list is sorted descending.
       last7Days.sort(Comparator.comparing(CurrentDaySummary::day).reversed());
 
-      RecentDailySummaries recentSummary = mapToRecentDailySummaries(last7Days);
+      RecentDailySummaries recentSummary = DataParsingUtils.mapToRecentDailySummaries(last7Days);
       validationService.validate(recentSummary);
-      recentDailySummariesRepo.save(recentSummary);
 
-      logger.info("✅ Successfully saved RecentDailySummaries for latest day {}", recentSummary.latestDay());
+      Optional<RecentDailySummaries> existing = recentDailySummariesRepo.findByLatestDay(recentSummary.latestDay());
+      if (existing.isPresent()) {
+         RecentDailySummaries updated = mergeRecent(existing.get(), recentSummary);
+         recentDailySummariesRepo.save(updated);
+      } else {
+         // Disambiguate the call by casting to RecentDailySummaries so that the single-entity overload is chosen.
+         recentDailySummariesRepo.insert((RecentDailySummaries) recentSummary);
+      }
+
+      logger.info("✅ Successfully processed and saved RecentDailySummaries for latest day {}", recentSummary.latestDay());
    }
 
-   /**
-    * Parses raw data from SQLite into a list of MonthlySummary objects.
-    *
-    * @param databaseName the SQLite database name.
-    * @param tableName the table name containing monthly summary data.
-    * @return a List of MonthlySummary objects.
-    * @throws GarminProcessingException if no data is found.
-    */
-   private List<MonthlySummary> parseData(String databaseName, String tableName) {
+
+   // Helper to parse monthly data.
+   private List<MonthlySummary> parseMonthlyData(String databaseName, String tableName) {
       List<Map<String, Object>> rawData = garminSQLiteRepo.fetchTableData(databaseName, tableName);
       if (rawData.isEmpty()) {
          throw new GarminProcessingException("No data found in table: " + tableName);
@@ -185,18 +203,76 @@ public class GarminProcessingService {
           .toList();
    }
 
-   /**
-    * Merges an existing MonthlySummary with a new incoming MonthlySummary.
-    *
-    * <p>This example merge simply keeps the existing record's id and firstDay, and updates the summary field.
-    * Adjust this logic as needed if you require more complex merging.
-    *
-    * @param existing the existing MonthlySummary from the DB.
-    * @param incoming the new MonthlySummary generated from raw data.
-    * @return a merged MonthlySummary object.
-    */
-   private MonthlySummary merge(MonthlySummary existing, MonthlySummary incoming) {
-      // In this simple merge, we replace the summary with the new one while preserving the id and firstDay.
+   // Merge methods: In these simple merges, we preserve the existing record's id and key,
+   // and update the summary data from the incoming record.
+
+   private CurrentDaySummary mergeCurrentDay(CurrentDaySummary existing, CurrentDaySummary incoming) {
+      return new CurrentDaySummary(existing.id(), existing.day(), incoming.summary());
+   }
+
+   private WeeklySummary mergeWeekly(WeeklySummary existing, WeeklySummary incoming) {
+      return new WeeklySummary(existing.id(), existing.firstDay(), incoming.summary());
+   }
+
+   private MonthlySummary mergeMonthly(MonthlySummary existing, MonthlySummary incoming) {
       return new MonthlySummary(existing.id(), existing.firstDay(), incoming.summary());
+   }
+
+   private YearlySummary mergeYearly(YearlySummary existing, YearlySummary incoming) {
+      return new YearlySummary(existing.id(), existing.firstDay(), incoming.summary());
+   }
+
+   private RecentDailySummaries mergeRecent(RecentDailySummaries existing, RecentDailySummaries incoming) {
+      return new RecentDailySummaries(
+          existing.id(),
+          existing.latestDay(),
+          incoming.hrMin(),
+          incoming.hrMax(),
+          incoming.hrAvg(),
+          incoming.rhrMin(),
+          incoming.rhrMax(),
+          incoming.rhrAvg(),
+          incoming.inactiveHrMin(),
+          incoming.inactiveHrMax(),
+          incoming.inactiveHrAvg(),
+          incoming.caloriesAvg(),
+          incoming.caloriesGoal(),
+          incoming.caloriesBmrAvg(),
+          incoming.caloriesConsumedAvg(),
+          incoming.caloriesActiveAvg(),
+          incoming.activitiesCalories(),
+          incoming.weightMin(),
+          incoming.weightMax(),
+          incoming.weightAvg(),
+          incoming.hydrationGoal(),
+          incoming.hydrationIntake(),
+          incoming.hydrationAvg(),
+          incoming.sweatLoss(),
+          incoming.sweatLossAvg(),
+          incoming.bbMin(),
+          incoming.bbMax(),
+          incoming.stressAvg(),
+          incoming.rrMin(),
+          incoming.rrMax(),
+          incoming.rrWakingAvg(),
+          incoming.spo2Min(),
+          incoming.spo2Avg(),
+          incoming.sleepMin(),
+          incoming.sleepMax(),
+          incoming.sleepAvg(),
+          incoming.remSleepMin(),
+          incoming.remSleepMax(),
+          incoming.remSleepAvg(),
+          incoming.stepsGoal(),
+          incoming.steps(),
+          incoming.floorsGoal(),
+          incoming.floors(),
+          incoming.activities(),
+          incoming.activitiesDistance(),
+          incoming.intensityTimeGoal(),
+          incoming.intensityTime(),
+          incoming.moderateActivityTime(),
+          incoming.vigorousActivityTime()
+      );
    }
 }

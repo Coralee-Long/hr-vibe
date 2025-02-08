@@ -6,6 +6,8 @@ import com.backend.dtos.RecentDailySummariesDTO;
 import com.backend.dtos.WeeklySummaryDTO;
 import com.backend.dtos.YearlySummaryDTO;
 import com.backend.exceptions.GarminProcessingException;
+import com.backend.models.MonthlySummary;
+import com.backend.models.YearlySummary;
 import com.backend.repos.MongoDB.CurrentDaySummaryRepo;
 import com.backend.repos.MongoDB.MonthlySummaryRepo;
 import com.backend.repos.MongoDB.WeeklySummaryRepo;
@@ -18,6 +20,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -132,18 +135,22 @@ public class GarminRetrievalService {
     * <p>If the "year" parameter is provided, only summaries for that year are returned.
     * Otherwise, all monthly summaries are returned.
     *
+    * <p>The list is sorted in descending order by the <code>firstDay</code> field.
+    *
     * @param year the year to filter by, or null to retrieve all summaries.
     * @return a List of MonthlySummaryDTO objects.
     * @throws GarminProcessingException if processing fails.
     */
    public List<MonthlySummaryDTO> getMonthSummaries(Integer year) {
       logger.info("Retrieving monthly summaries with year={}", year);
-      List<com.backend.models.MonthlySummary> summaries;
+      List<MonthlySummary> summaries;
       if (year == null) {
          summaries = monthlySummaryRepo.findAll();
       } else {
          summaries = monthlySummaryRepo.findByYear(year);
       }
+      // Sort the summaries in descending order by the firstDay field.
+      summaries.sort(Comparator.comparing(MonthlySummary::firstDay).reversed());
       return summaries.stream()
           .map(MonthlySummaryDTO::fromModel)
           .collect(Collectors.toList());
@@ -152,11 +159,16 @@ public class GarminRetrievalService {
    /**
     * Retrieves all yearly summaries.
     *
+    * <p>The list is sorted in descending order by the <code>firstDay</code> field.
+    *
     * @return a List of YearlySummaryDTO objects.
     */
    public List<YearlySummaryDTO> getYearSummaries() {
       logger.info("Retrieving yearly summaries from MongoDB...");
-      return yearlySummaryRepo.findAll().stream()
+      List<YearlySummary> summaries = yearlySummaryRepo.findAll();
+      // Sort the yearly summaries in descending order by the firstDay field.
+      summaries.sort(Comparator.comparing(YearlySummary::firstDay).reversed());
+      return summaries.stream()
           .map(YearlySummaryDTO::fromModel)
           .collect(Collectors.toList());
    }
