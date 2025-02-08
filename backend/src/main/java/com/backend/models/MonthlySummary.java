@@ -3,6 +3,7 @@ package com.backend.models;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.data.mongodb.core.mapping.Field;
 
@@ -10,6 +11,7 @@ import java.time.LocalDate;
 
 @Document(collection = "monthly_summaries") // Stores monthly aggregated data
 @JsonInclude(JsonInclude.Include.ALWAYS)  // Ensures null fields are included
+@CompoundIndex (name = "unique_firstDay", def = "{'firstDay': 1}", unique = true)
 public record MonthlySummary(
     @Id String id, // Unique MongoDB ID
 

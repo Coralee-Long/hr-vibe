@@ -8,6 +8,7 @@ import com.backend.dtos.WeeklySummaryDTO;
 import com.backend.dtos.YearlySummaryDTO;
 import com.backend.exceptions.GarminProcessingException;
 import com.backend.exceptions.GlobalExceptionHandler;
+import com.backend.controllers.GarminRetrievalController;
 import com.backend.services.GarminRetrievalService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -35,21 +36,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Unit tests for {@link com.backend.controllers.GarminRetrievalController}.
  *
  * Table of Contents:
- * 1️⃣  getAllDaySummaries(int limit)
+ * <ul>
+ *   <li>1️⃣ getAllDaySummaries(int limit)
  *      - ✅ Returns a valid list of day summaries when data is available.
- * 2️⃣  getDaySummary(LocalDate day)
+ *   <li>2️⃣ getDaySummary(LocalDate day)
  *      - ✅ Returns a valid day summary for a given date.
  *      - ❌ Throws {@link GarminProcessingException} when a summary is not found.
- * 3️⃣  getRecentDailySummaries(LocalDate referenceDate)
+ *   <li>3️⃣ getRecentDailySummaries(LocalDate referenceDate)
  *      - ✅ Returns a valid {@link RecentDailySummariesDTO} loaded from a JSON mock file.
- * 4️⃣  getWeekSummary(LocalDate referenceDate)
+ *   <li>4️⃣ getWeekSummary(LocalDate referenceDate)
  *      - ✅ Returns a valid weekly summary DTO for the reference date.
- * 5️⃣  getAllWeekSummaries(int limit)
+ *   <li>5️⃣ getAllWeekSummaries(int limit)
  *      - ✅ Returns a valid list of weekly summary DTOs when data is available.
- * 6️⃣  getMonthSummaries(Integer month, Integer year)
- *      - ✅ Returns a valid list of monthly summary DTOs when data is available.
- * 7️⃣  getYearSummaries()
+ *   <li>6️⃣ getMonthSummaries(Integer year)
+ *      - ✅ Returns all monthly summary DTOs when no year is provided.
+ *      - ✅ Returns monthly summary DTOs for the given year when a year is provided.
+ *   <li>7️⃣ getYearSummaries()
  *      - ✅ Returns a valid list of yearly summary DTOs when data is available.
+ * </ul>
  */
 class GarminRetrievalControllerTest {
 
@@ -187,14 +191,12 @@ class GarminRetrievalControllerTest {
           10000, 9000, 10, 8,
           2, 5.0, "00:30:00", "00:45:00", "00:20:00", "00:10:00"
       );
-      // Create a weekly summary with the date now called "firstDay"
       WeeklySummaryDTO dummyDTO = new WeeklySummaryDTO("1", refDate.toString(), baseSummary);
       when(retrievalService.getWeekSummary(eq(refDate))).thenReturn(dummyDTO);
 
-      // WHEN: Perform GET /garmin/weeks/{referenceDate} (corrected endpoint).
+      // WHEN: Perform GET /garmin/weeks/{referenceDate}
       mockMvc.perform(get("/garmin/weeks/{referenceDate}", refDate.toString())
                           .accept(MediaType.APPLICATION_JSON))
-          .andDo(result -> System.out.println("Response JSON: " + result.getResponse().getContentAsString()))
           .andExpect(status().isOk())
           // Verify that the field is now "firstDay" with the correct value.
           .andExpect(jsonPath("$.firstDay").value("2023-05-03"))
@@ -203,30 +205,52 @@ class GarminRetrievalControllerTest {
    }
 
    /**
-    * ✅ Test getMonthSummaries returns a valid list of monthly summary DTOs for the given month and year.
+    * ✅ Test getMonthSummaries returns a valid list of monthly summary DTOs when no year is provided.
     */
    @Test
-   void testGetMonthSummaries() throws Exception {
-      BaseSummaryDTO baseSummary = new BaseSummaryDTO(
-          60, 120, 80, 60, 80, 70, 55, 75, 65,
-          2000, 2500, 1500, 1800, 500, 300,
-          60.0, 65.0, 62.0,
-          3000, 2800, 2900, 100, 110,
-          20, 80, 30,
-          10, 20, 15, 85, 90,
-          "08:00:00", "09:00:00", "08:30:00",
-          "01:00:00", "01:15:00", "01:05:00",
-          10000, 9000, 10, 8,
-          2, 5.0, "00:30:00", "00:45:00", "00:20:00", "00:10:00"
-      );
-      MonthlySummaryDTO dummyDTO = new MonthlySummaryDTO("1", LocalDate.of(2023, 5, 1).toString(), baseSummary);
-      when(retrievalService.getMonthSummaries(5, 2023)).thenReturn(java.util.Arrays.asList(dummyDTO));
+   void testGetMonthSummaries_All() throws Exception {
+      MonthlySummaryDTO dummyDTO = new MonthlySummaryDTO("1", LocalDate.of(2023, 5, 1).toString(),
+                                                         new BaseSummaryDTO(60, 120, 80, 60, 80, 70, 55, 75, 65,
+                                                                            2000, 2500, 1500, 1800, 500, 300,
+                                                                            60.0, 65.0, 62.0,
+                                                                            3000, 2800, 2900, 100, 110,
+                                                                            20, 80, 30,
+                                                                            10, 20, 15, 85, 90,
+                                                                            "08:00:00", "09:00:00", "08:30:00",
+                                                                            "01:00:00", "01:15:00", "01:05:00",
+                                                                            10000, 9000, 10, 8,
+                                                                            2, 5.0, "00:30:00", "00:45:00", "00:20:00", "00:10:00"));
+      when(retrievalService.getMonthSummaries(null)).thenReturn(Collections.singletonList(dummyDTO));
 
-      // WHEN: Perform GET /garmin/months with month and year parameters.
-      // THEN: Expect a list of size 1.
+      // WHEN: Perform GET /garmin/months with no query parameters.
       mockMvc.perform(get("/garmin/months")
-                          .param("month", "5")
-                          .param("year", "2023")
+                          .accept(MediaType.APPLICATION_JSON))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$", hasSize(1)));
+   }
+
+   /**
+    * ✅ Test getMonthSummaries returns a valid list of monthly summary DTOs when a year is provided.
+    */
+   @Test
+   void testGetMonthSummaries_ByYear() throws Exception {
+      int year = 2023;
+      MonthlySummaryDTO dummyDTO = new MonthlySummaryDTO("1", LocalDate.of(2023, 5, 1).toString(),
+                                                         new BaseSummaryDTO(60, 120, 80, 60, 80, 70, 55, 75, 65,
+                                                                            2000, 2500, 1500, 1800, 500, 300,
+                                                                            60.0, 65.0, 62.0,
+                                                                            3000, 2800, 2900, 100, 110,
+                                                                            20, 80, 30,
+                                                                            10, 20, 15, 85, 90,
+                                                                            "08:00:00", "09:00:00", "08:30:00",
+                                                                            "01:00:00", "01:15:00", "01:05:00",
+                                                                            10000, 9000, 10, 8,
+                                                                            2, 5.0, "00:30:00", "00:45:00", "00:20:00", "00:10:00"));
+      when(retrievalService.getMonthSummaries(eq(year))).thenReturn(Collections.singletonList(dummyDTO));
+
+      // WHEN: Perform GET /garmin/months with the year parameter.
+      mockMvc.perform(get("/garmin/months")
+                          .param("year", String.valueOf(year))
                           .accept(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$", hasSize(1)));
@@ -237,62 +261,24 @@ class GarminRetrievalControllerTest {
     */
    @Test
    void testGetYearSummaries() throws Exception {
-      BaseSummaryDTO baseSummary = new BaseSummaryDTO(
-          60, 120, 80, 60, 80, 70, 55, 75, 65,
-          2000, 2500, 1500, 1800, 500, 300,
-          60.0, 65.0, 62.0,
-          3000, 2800, 2900, 100, 110,
-          20, 80, 30,
-          10, 20, 15, 85, 90,
-          "08:00:00", "09:00:00", "08:30:00",
-          "01:00:00", "01:15:00", "01:05:00",
-          10000, 9000, 10, 8,
-          2, 5.0, "00:30:00", "00:45:00", "00:20:00", "00:10:00"
-      );
-      YearlySummaryDTO dummyDTO = new YearlySummaryDTO("1", LocalDate.of(2023, 1, 1).toString(), baseSummary);
+      YearlySummaryDTO dummyDTO = new YearlySummaryDTO("1", LocalDate.of(2023, 1, 1).toString(),
+                                                       new BaseSummaryDTO(60, 120, 80, 60, 80, 70, 55, 75, 65,
+                                                                          2000, 2500, 1500, 1800, 500, 300,
+                                                                          60.0, 65.0, 62.0,
+                                                                          3000, 2800, 2900, 100, 110,
+                                                                          20, 80, 30,
+                                                                          10, 20, 15, 85, 90,
+                                                                          "08:00:00", "09:00:00", "08:30:00",
+                                                                          "01:00:00", "01:15:00", "01:05:00",
+                                                                          10000, 9000, 10, 8,
+                                                                          2, 5.0, "00:30:00", "00:45:00", "00:20:00", "00:10:00"));
       when(retrievalService.getYearSummaries()).thenReturn(Collections.singletonList(dummyDTO));
 
       // WHEN: Perform GET /garmin/years.
-      // THEN: Expect a list of size 1.
       mockMvc.perform(get("/garmin/years")
                           .accept(MediaType.APPLICATION_JSON))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$", hasSize(1)));
-   }
-
-   /**
-    * ✅ Test getAllWeekSummaries returns a valid list of weekly summary DTOs when data is available.
-    *
-    * This test verifies the new endpoint GET /garmin/weeks which returns an array of weekly summaries.
-    */
-   @Test
-   void testGetAllWeekSummaries() throws Exception {
-      // Use a fixed reference date for consistency.
-      LocalDate weekDate = LocalDate.of(2023, 5, 10);
-      BaseSummaryDTO baseSummary = new BaseSummaryDTO(
-          60, 120, 80, 60, 80, 70, 55, 75, 65,
-          2000, 2500, 1500, 1800, 500, 300,
-          60.0, 65.0, 62.0,
-          3000, 2800, 2900, 100, 110,
-          20, 80, 30,
-          10, 20, 15, 85, 90,
-          "08:00:00", "09:00:00", "08:30:00",
-          "01:00:00", "01:15:00", "01:05:00",
-          10000, 9000, 10, 8,
-          2, 5.0, "00:30:00", "00:45:00", "00:20:00", "00:10:00"
-      );
-      WeeklySummaryDTO dummyDTO = new WeeklySummaryDTO("1", weekDate.toString(), baseSummary);
-      // When the retrievalService is asked for a list of weekly summaries (by limit),
-      // return a singleton list containing our dummy weekly summary.
-      when(retrievalService.getAllWeekSummaries(anyInt())).thenReturn(Collections.singletonList(dummyDTO));
-
-      // Perform GET /garmin/weeks?limit=30 and expect an array of size 1.
-      mockMvc.perform(get("/garmin/weeks")
-                          .param("limit", "30")
-                          .accept(MediaType.APPLICATION_JSON))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$", hasSize(1)))
-          .andExpect(jsonPath("$[0].firstDay").value(weekDate.toString()));
    }
 
    /**

@@ -1,6 +1,10 @@
 package com.backend.services;
 
-import com.backend.dtos.*;
+import com.backend.dtos.CurrentDaySummaryDTO;
+import com.backend.dtos.MonthlySummaryDTO;
+import com.backend.dtos.RecentDailySummariesDTO;
+import com.backend.dtos.WeeklySummaryDTO;
+import com.backend.dtos.YearlySummaryDTO;
 import com.backend.exceptions.GarminProcessingException;
 import com.backend.repos.MongoDB.CurrentDaySummaryRepo;
 import com.backend.repos.MongoDB.MonthlySummaryRepo;
@@ -20,15 +24,14 @@ import java.util.stream.Collectors;
 /**
  * GarminRetrievalService provides methods to retrieve Garmin summary data from various MongoDB repositories.
  * It converts the retrieved models into DTOs before returning them to the controller layer.
- *
+
  * The following types of summaries are available:
- *
- *   Day summaries
- *   Recent daily summaries (last 7 days)
- *   Week summaries
- *   Month summaries
- *   Year summaries
- *
+
+ *   - Day summaries
+ *   - Recent daily summaries (last 7 days)
+ *   - Week summaries
+ *   - Month summaries (either all, or filtered by year)
+ *   - Year summaries
  */
 @Service
 public class GarminRetrievalService {
@@ -124,15 +127,24 @@ public class GarminRetrievalService {
    }
 
    /**
-    * Retrieves monthly summaries filtered by month and year.
+    * Retrieves monthly summaries.
     *
-    * @param month the month to filter by.
-    * @param year the year to filter by.
+    * <p>If the "year" parameter is provided, only summaries for that year are returned.
+    * Otherwise, all monthly summaries are returned.
+    *
+    * @param year the year to filter by, or null to retrieve all summaries.
     * @return a List of MonthlySummaryDTO objects.
+    * @throws GarminProcessingException if processing fails.
     */
-   public List<MonthlySummaryDTO> getMonthSummaries(Integer month, Integer year) {
-      logger.info("Retrieving monthly summaries for month={} and year={}", month, year);
-      return monthlySummaryRepo.findByMonthAndYear(month, year).stream()
+   public List<MonthlySummaryDTO> getMonthSummaries(Integer year) {
+      logger.info("Retrieving monthly summaries with year={}", year);
+      List<com.backend.models.MonthlySummary> summaries;
+      if (year == null) {
+         summaries = monthlySummaryRepo.findAll();
+      } else {
+         summaries = monthlySummaryRepo.findByYear(year);
+      }
+      return summaries.stream()
           .map(MonthlySummaryDTO::fromModel)
           .collect(Collectors.toList());
    }

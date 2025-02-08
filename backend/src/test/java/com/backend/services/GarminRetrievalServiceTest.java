@@ -42,23 +42,26 @@ import static org.mockito.Mockito.when;
  * Unit tests for {@link com.backend.services.GarminRetrievalService}.
 
  * Table of Contents:
- * 1️⃣ getAllDaySummaries(int limit)
- *    - ✅ Returns a valid list of day summary DTOs when data is available.
- * 2️⃣ getDaySummary(LocalDate day)
- *    - ✅ Returns a valid day summary DTO for a given date.
- *    - ❌ Throws GarminProcessingException when no summary is found.
- * 3️⃣ getRecentDailySummaries(LocalDate referenceDate)
- *    - ✅ Returns a valid RecentDailySummariesDTO (loaded from JSON) when data is available.
- *    - ❌ Throws GarminProcessingException when no recent daily summaries are found.
- * 4️⃣ getWeekSummary(LocalDate referenceDate)
- *    - ✅ Returns a valid weekly summary DTO (loaded from JSON) when data is available.
- *    - ❌ Throws GarminProcessingException when no weekly summary is found.
- * 5️⃣ getAllWeekSummaries(int limit)
- *    - ✅ Returns a valid list of weekly summary DTOs when data is available.
- * 6️⃣ getMonthSummaries(Integer month, Integer year)
- *    - ✅ Returns a valid list of monthly summary DTOs (loaded from JSON) when data is available.
- * 7️⃣ getYearSummaries()
- *    - ✅ Returns a valid list of yearly summary DTOs (loaded from JSON) when data is available.
+
+ *   1️⃣ getAllDaySummaries(int limit)
+ *      - ✅ Returns a valid list of day summary DTOs when data is available.
+ *   2️⃣ getDaySummary(LocalDate day)
+ *      - ✅ Returns a valid day summary DTO for a given date.
+ *      - ❌ Throws GarminProcessingException when no summary is found.
+ *   3️⃣ getRecentDailySummaries(LocalDate referenceDate)
+ *      - ✅ Returns a valid RecentDailySummariesDTO (loaded from JSON) when data is available.
+ *      - ❌ Throws GarminProcessingException when no recent daily summaries are found.
+ *   4️⃣ getWeekSummary(LocalDate referenceDate)
+ *      - ✅ Returns a valid weekly summary DTO (loaded from JSON) when data is available.
+ *      - ❌ Throws GarminProcessingException when no weekly summary is found.
+ *   5️⃣ getAllWeekSummaries(int limit)
+ *      - ✅ Returns a valid list of weekly summary DTOs when data is available.
+ *   6️⃣ getMonthSummaries(Integer year)
+ *      - ✅ Returns a valid list of monthly summary DTOs (loaded from JSON) when filtering by year,
+ *         or all monthly summaries when year is null.
+ *   7️⃣ getYearSummaries()
+ *      - ✅ Returns a valid list of yearly summary DTOs (loaded from JSON) when data is available.
+ *
  */
 class GarminRetrievalServiceTest {
 
@@ -362,14 +365,15 @@ class GarminRetrievalServiceTest {
    }
 
    /**
-    * 6️⃣ Test getMonthSummaries(Integer month, Integer year)
-    * - ✅ Returns a valid list of monthly summary DTOs (loaded from JSON) when data is available.
+    * 6️⃣ Test getMonthSummaries(Integer year)
+    * - ✅ Returns a valid list of monthly summary DTOs (loaded from JSON) when filtering by year.
     */
    @Test
-   void testGetMonthSummaries() throws Exception {
+   void testGetMonthSummariesByYearProvided() throws Exception {
       // GIVEN: A dummy MonthlySummary model with a fake id.
       MonthlySummary dummyModel = new MonthlySummary("mongoId3", LocalDate.of(2023, 5, 1), dummyBaseSummaryModel);
-      when(monthlySummaryRepo.findByMonthAndYear(5, 2023)).thenReturn(Arrays.asList(dummyModel));
+      // When a specific year is provided, the repository should return summaries for that year.
+      when(monthlySummaryRepo.findByYear(2023)).thenReturn(Arrays.asList(dummyModel));
 
       // Load expected DTO from JSON.
       List<MonthlySummaryDTO> expectedDTOs = loadMonthsSummaryDTOsFromJson();
@@ -378,8 +382,35 @@ class GarminRetrievalServiceTest {
       try (MockedStatic<MonthlySummaryDTO> mockedConversion = Mockito.mockStatic(MonthlySummaryDTO.class)) {
          mockedConversion.when(() -> MonthlySummaryDTO.fromModel(dummyModel)).thenReturn(expectedDTO);
 
-         // WHEN: Calling the service method.
-         List<MonthlySummaryDTO> result = service.getMonthSummaries(5, 2023);
+         // WHEN: Calling the service method with a specified year.
+         List<MonthlySummaryDTO> result = service.getMonthSummaries(2023);
+
+         // THEN: The result should not be null and contain one element equal to expected.
+         assertNotNull(result);
+         assertEquals(1, result.size());
+         assertEquals(expectedDTO, result.get(0));
+      }
+   }
+
+   /**
+    * Additional test for getMonthSummaries(Integer year)
+    * - ✅ Returns a valid list of monthly summary DTOs when year is null (retrieves all summaries).
+    */
+   @Test
+   void testGetMonthSummariesAll() throws Exception {
+      // GIVEN: A dummy MonthlySummary model with a fake id.
+      MonthlySummary dummyModel = new MonthlySummary("mongoId4", LocalDate.of(2023, 5, 1), dummyBaseSummaryModel);
+      when(monthlySummaryRepo.findAll()).thenReturn(Arrays.asList(dummyModel));
+
+      // Load expected DTO from JSON.
+      List<MonthlySummaryDTO> expectedDTOs = loadMonthsSummaryDTOsFromJson();
+      MonthlySummaryDTO expectedDTO = expectedDTOs.get(0);
+
+      try (MockedStatic<MonthlySummaryDTO> mockedConversion = Mockito.mockStatic(MonthlySummaryDTO.class)) {
+         mockedConversion.when(() -> MonthlySummaryDTO.fromModel(dummyModel)).thenReturn(expectedDTO);
+
+         // WHEN: Calling the service method with null year.
+         List<MonthlySummaryDTO> result = service.getMonthSummaries(null);
 
          // THEN: The result should not be null and contain one element equal to expected.
          assertNotNull(result);
@@ -395,7 +426,7 @@ class GarminRetrievalServiceTest {
    @Test
    void testGetYearSummaries() throws Exception {
       // GIVEN: A dummy YearlySummary model with a fake id.
-      YearlySummary dummyModel = new YearlySummary("mongoId4", LocalDate.of(2023, 1, 1), dummyBaseSummaryModel);
+      YearlySummary dummyModel = new YearlySummary("mongoId5", LocalDate.of(2023, 1, 1), dummyBaseSummaryModel);
       when(yearlySummaryRepo.findAll()).thenReturn(Collections.singletonList(dummyModel));
 
       // Load expected DTO from JSON.
