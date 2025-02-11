@@ -9,6 +9,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -26,9 +27,9 @@ public class SecurityConfig {
    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
       http
           .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Enable CORS
+          // Instead of disabling CSRF, enable it using a CookieCsrfTokenRepository.
           .csrf(csrf -> csrf
-                    // Enable CSRF globally, but ignore it for specific endpoints
-                    .ignoringRequestMatchers("/oauth2/**", "/auth/guest", "/auth/logout")
+                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                )
           .authorizeHttpRequests(auth -> auth
                                      // ✅ Guest Mode Access (Public)
