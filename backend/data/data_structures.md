@@ -1,17 +1,18 @@
 ## **📌 Model Names and Purpose**
 
-| **Model Name** | **Purpose** | **Data Source** | **Stored in MongoDB as** |
-|---------------|------------|----------------|--------------------------|
-| `BaseSummary` | Embedded summary model for all timeframes | - | - |
-| `CurrentDaySummary` | Latest available day’s data | `days_summary` | `current_day_summaries` |
+| **Model Name**         | **Purpose**                                               | **Data Source**              | **Stored in MongoDB as** |
+| ---------------------- | --------------------------------------------------------- | ---------------------------- | ------------------------ |
+| `BaseSummary`          | Embedded summary model for all timeframes                 | -                            | -                        |
+| `CurrentDaySummary`    | Latest available day’s data                               | `days_summary`               | `current_day_summaries`  |
 | `RecentDailySummaries` | Last 7 days of daily data (pre-processed for mini-graphs) | `days_summary` (last 7 days) | `recent_daily_summaries` |
-| `WeeklySummary` | Aggregated weekly data | `weeks_summary` | `weekly_summaries` |
-| `MonthlySummary` | Aggregated monthly data | `months_summary` | `monthly_summaries` |
-| `YearlySummary` | Aggregated yearly data | `years_summary` | `yearly_summaries` |
+| `WeeklySummary`        | Aggregated weekly data                                    | `weeks_summary`              | `weekly_summaries`       |
+| `MonthlySummary`       | Aggregated monthly data                                   | `months_summary`             | `monthly_summaries`      |
+| `YearlySummary`        | Aggregated yearly data                                    | `years_summary`              | `yearly_summaries`       |
 
 ## **📌 Model Structures**
 
 ### **1️⃣ `BaseSummary` (Embedded Summary Model)**
+
 - Used as a shared model for `CurrentDaySummary`, `WeeklySummary`, `MonthlySummary`, and `YearlySummary`.
 
 ```java
@@ -84,6 +85,7 @@ public record BaseSummary(
 ---
 
 ### **2️⃣ `CurrentDaySummary` (Latest Available Day’s Data)**
+
 - Stores **a single day's health metrics**.
 
 ```java
@@ -98,6 +100,7 @@ public record CurrentDaySummary(
 ---
 
 ### **3️⃣ `RecentDailySummaries` (Last 7 Days Pre-Processed for Mini-Graphs)**
+
 - Stores **processed arrays** for the last 7 days instead of individual `CurrentDaySummary` objects.
 - Used for **trend graphs and visualizations** in the frontend.
 
@@ -122,19 +125,19 @@ public record RecentDailySummaries(
     List<Integer> caloriesAvg, // Last 7 days of avg daily calories burned
     List<Integer> caloriesGoal, // Last 7 days of calorie burn goals
     List<Integer> caloriesBmrAvg, // Last 7 days of avg BMR
-    List<Integer> caloriesConsumedAvg, // Last 7 days of avg calories consumed 
+    List<Integer> caloriesConsumedAvg, // Last 7 days of avg calories consumed
     List<Integer> caloriesActiveAvg, // Last 7 days of avg active calories burned
-    List<Integer> activitiesCalories, // Last 7 days of calories burned in activities 
+    List<Integer> activitiesCalories, // Last 7 days of calories burned in activities
 
-    List<Double> weightMin, // Last 7 days of min weight recorded 
-    List<Double> weightMax, // Last 7 days of max weight recorded 
-    List<Double> weightAvg, // Last 7 days of avg weight recorded 
+    List<Double> weightMin, // Last 7 days of min weight recorded
+    List<Double> weightMax, // Last 7 days of max weight recorded
+    List<Double> weightAvg, // Last 7 days of avg weight recorded
 
     List<Integer> hydrationGoal, // Last 7 days of hydration goals (ml)
-    List<Integer> hydrationIntake, // Last 7 days of total hydration intake (ml) 
-    List<Integer> hydrationAvg, // Last 7 days of avg daily hydration intake 
-    List<Integer> sweatLoss, // Last 7 days of total sweat loss (ml) 
-    List<Integer> sweatLossAvg, // Last 7 days of avg sweat loss (ml) 
+    List<Integer> hydrationIntake, // Last 7 days of total hydration intake (ml)
+    List<Integer> hydrationAvg, // Last 7 days of avg daily hydration intake
+    List<Integer> sweatLoss, // Last 7 days of total sweat loss (ml)
+    List<Integer> sweatLossAvg, // Last 7 days of avg sweat loss (ml)
 
     List<Integer> bbMin, // Last 7 days of min body battery
     List<Integer> bbMax, // Last 7 days of max body battery
@@ -152,8 +155,8 @@ public record RecentDailySummaries(
     List<String> remSleepMax, // Last 7 days of max REM sleep duration (HH:MM:SS)
     List<String> remSleepAvg, // Last 7 days of avg REM sleep duration (HH:MM:SS)
 
-    List<Integer> spo2Min, // Last 7 days of min SpO2 
-    List<Integer> spo2Avg, // Last 7 days of avg SpO2 
+    List<Integer> spo2Min, // Last 7 days of min SpO2
+    List<Integer> spo2Avg, // Last 7 days of avg SpO2
 
     List<Integer> stepsGoal, // Last 7 days of step goals
     List<Integer> steps, // Last 7 days of steps taken
@@ -173,6 +176,7 @@ public record RecentDailySummaries(
 ---
 
 ### **4️⃣ `WeeklySummary` (One Week Aggregation)**
+
 ```java
 @Document(collection = "weekly_summaries") // Stores weekly aggregated data
 public record WeeklySummary(
@@ -185,6 +189,7 @@ public record WeeklySummary(
 ---
 
 ### **5️⃣ `MonthlySummary` (One Month Aggregation)**
+
 ```java
 @Document(collection = "monthly_summaries") // Stores monthly aggregated data
 public record MonthlySummary(
@@ -197,6 +202,7 @@ public record MonthlySummary(
 ---
 
 ### **6️⃣ `YearlySummary` (One Year Aggregation)**
+
 ```java
 @Document(collection = "yearly_summaries") // Stores yearly aggregated data
 public record YearlySummary(
@@ -209,6 +215,7 @@ public record YearlySummary(
 ---
 
 ## **📌 Key Changes & Improvements**
+
 ✅ **Pre-Processed Mini-Graph Data**: `RecentDailySummaries` now stores **arrays** instead of raw `CurrentDaySummary` objects.
 ✅ **Consistent Summary Models**: `WeeklySummary`, `MonthlySummary`, and `YearlySummary` use **`BaseSummary`** to avoid duplication.
 ✅ **Optimized for Fast Retrieval**: Data is **pre-processed before saving to MongoDB**, reducing query overhead at runtime.
@@ -216,11 +223,11 @@ public record YearlySummary(
 ---
 
 ## **📌 Next Steps**
+
 - Implement **DTOs with validation** for all summaries.
 - Develop **service logic** to:
-    1. Fetch the last 7 `CurrentDaySummary` entries.
-    2. Process & store them in `RecentDailySummaries`.
-    3. Generate aggregated data for Daily, Weekly, Monthly, and Yearly 
-       summaries.
+  1. Fetch the last 7 `CurrentDaySummary` entries.
+  2. Process & store them in `RecentDailySummaries`.
+  3. Generate aggregated data for Daily, Weekly, Monthly, and Yearly
+     summaries.
 - Set up **API endpoints** for fetching summary data.
-

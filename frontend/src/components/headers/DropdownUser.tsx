@@ -1,18 +1,23 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-
 import UserOne from "../../images/user/user-01.png";
+import { UserType } from "@/types/UserType.ts";
 
-const DropdownUser = () => {
+const DropdownUser = ({
+  user,
+  onLogout,
+}: {
+  user: UserType | null;
+  onLogout: () => Promise<void>;
+}) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
-
   const trigger = useRef<any>(null);
   const dropdown = useRef<any>(null);
 
-  // close on click outside
+  // Close dropdown on click outside
   useEffect(() => {
     const clickHandler = ({ target }: MouseEvent) => {
-      if (!dropdown.current) return;
+      if (!dropdown.current || !trigger.current) return;
       if (
         !dropdownOpen ||
         dropdown.current.contains(target) ||
@@ -25,16 +30,6 @@ const DropdownUser = () => {
     return () => document.removeEventListener("click", clickHandler);
   });
 
-  // close if the esc key is pressed
-  useEffect(() => {
-    const keyHandler = ({ keyCode }: KeyboardEvent) => {
-      if (!dropdownOpen || keyCode !== 27) return;
-      setDropdownOpen(false);
-    };
-    document.addEventListener("keydown", keyHandler);
-    return () => document.removeEventListener("keydown", keyHandler);
-  });
-
   return (
     <div className="relative">
       <Link
@@ -45,9 +40,12 @@ const DropdownUser = () => {
       >
         <span className="hidden text-right lg:block">
           <span className="block text-sm font-medium text-black dark:text-white">
-            John Doe
+            {user ? `${user.firstName} ${user.lastName}` : "John Doe"}
           </span>
-          <span className="block text-xs">Bremen, Germany</span>
+          <span className="block text-xs">
+            {" "}
+            {user ? `${user.city} ${user.country}` : "City, Country"}
+          </span>
         </span>
 
         <span className="h-12 w-12 rounded-full">
@@ -77,7 +75,7 @@ const DropdownUser = () => {
         onFocus={() => setDropdownOpen(true)}
         onBlur={() => setDropdownOpen(false)}
         className={`absolute right-0 mt-4 flex w-62.5 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark ${
-          dropdownOpen === true ? "block" : "hidden"
+          dropdownOpen ? "block" : "hidden"
         }`}
       >
         <ul className="flex flex-col gap-5 border-b border-stroke px-6 py-7.5 dark:border-strokedark">
@@ -153,7 +151,10 @@ const DropdownUser = () => {
             </Link>
           </li>
         </ul>
-        <button className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base">
+        <button
+          onClick={onLogout}
+          className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
+        >
           <svg
             className="fill-current"
             width="22"

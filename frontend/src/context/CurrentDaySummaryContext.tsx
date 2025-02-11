@@ -9,14 +9,24 @@ type CurrentDaySummaryContextType = {
 };
 
 // Create the context with default values
-const CurrentDaySummaryContext = createContext<CurrentDaySummaryContextType | undefined>(undefined);
+const CurrentDaySummaryContext = createContext<
+  CurrentDaySummaryContextType | undefined
+>(undefined);
 
 // Provider component
-export const CurrentDaySummaryProvider = ({ children }: { children: ReactNode }) => {
-  const [currentDayData, setCurrentDayData] = useState<CurrentDaySummaryDTO>(mockCurrentDaySummary);
+export const CurrentDaySummaryProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  const [currentDayData, setCurrentDayData] = useState<CurrentDaySummaryDTO>(
+    mockCurrentDaySummary
+  );
 
   return (
-    <CurrentDaySummaryContext.Provider value={{ currentDayData, setCurrentDayData }}>
+    <CurrentDaySummaryContext.Provider
+      value={{ currentDayData, setCurrentDayData }}
+    >
       {children}
     </CurrentDaySummaryContext.Provider>
   );
@@ -26,7 +36,9 @@ export const CurrentDaySummaryProvider = ({ children }: { children: ReactNode })
 export const useCurrentDaySummary = (): CurrentDaySummaryContextType => {
   const context = useContext(CurrentDaySummaryContext);
   if (!context) {
-    throw new Error("useCurrentDaySummary must be used within a CurrentDaySummaryProvider");
+    throw new Error(
+      "useCurrentDaySummary must be used within a CurrentDaySummaryProvider"
+    );
   }
   return context;
 };
