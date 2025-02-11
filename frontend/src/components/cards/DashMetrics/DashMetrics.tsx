@@ -1,12 +1,11 @@
-import { HeartRate } from "@/components/StatsCards/DashMetrics/HeartRate/HeartRate.tsx";
-import { VO2Max } from "@/components/StatsCards/DashMetrics/VO2Max/VO2Max.tsx";
-import { HRVStatus } from "@/components/StatsCards/DashMetrics/HRV/HRV.tsx";
-import { Stress } from "@/components/StatsCards/DashMetrics/Stress/Stress.tsx";
-import { Sleep } from "@/components/StatsCards/DashMetrics/Sleep/Sleep.tsx";
-import { IntensityMinutes } from "@/components/StatsCards/DashMetrics/IntensityMiniutes/IntensityMinutes.tsx";
+import { HeartRate } from "@/components/cards/DashMetrics/HeartRate/HeartRate.tsx";
+import { VO2Max } from "@/components/cards/DashMetrics/VO2Max/VO2Max.tsx";
+import { HRVStatus } from "@/components/cards/DashMetrics/HRV/HRV.tsx";
+import { Stress } from "@/components/cards/DashMetrics/Stress/Stress.tsx";
+import { Sleep } from "@/components/cards/DashMetrics/Sleep/Sleep.tsx";
+import { IntensityMinutes } from "@/components/cards/DashMetrics/IntensityMiniutes/IntensityMinutes.tsx";
 
 export const DashMetrics = () => {
-
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">

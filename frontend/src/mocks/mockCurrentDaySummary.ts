@@ -58,6 +58,6 @@ export const mockCurrentDaySummary: CurrentDaySummaryDTO = {
     intensityTimeGoal: "00:21:25",
     intensityTime: "03:15:00",
     moderateActivityTime: "00:49:00",
-    vigorousActivityTime: "01:13:00"
-  }
+    vigorousActivityTime: "01:13:00",
+  },
 };

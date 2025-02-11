@@ -22,7 +22,11 @@ export const HeartRateDonutChart: React.FC = () => {
   return (
     <div className="relative w-full flex justify-center items-center">
       {/* Donut Chart */}
-      <ReactApexChart options={heartRateDonutConfig} series={state.series} type="donut" />
+      <ReactApexChart
+        options={heartRateDonutConfig}
+        series={state.series}
+        type="donut"
+      />
 
       {/* Centered Text */}
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">

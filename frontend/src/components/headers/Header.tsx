@@ -4,11 +4,14 @@ import DropdownNotification from "./DropdownNotification";
 import DropdownUser from "./DropdownUser";
 import LogoIcon from "@/images/logo/hrvibe-logo.png";
 import DarkModeSwitcher from "./DarkModeSwitcher";
+import { useAuth } from "@/context/AuthContext.tsx";
 
 export const Header = (props: {
   sidebarOpen: string | boolean | undefined;
   setSidebarOpen: (arg0: boolean) => void;
 }) => {
+  const { user, logout } = useAuth(); // ✅ Use AuthContext
+
   return (
     <header className="sticky top-0 z-999 flex w-full bg-white drop-shadow-1 dark:bg-boxdark dark:drop-shadow-none">
       <div className="flex flex-grow items-center justify-between px-4 py-4 shadow-2 md:px-6 2xl:px-11">
@@ -56,7 +59,7 @@ export const Header = (props: {
           </button>
           {/* <!-- Hamburger Toggle BTN --> */}
 
-          <Link className="block flex-shrink-0 lg:hidden" to="/dashboard">
+          <Link className="block flex-shrink-0 lg:hidden" to="/">
             <img src={LogoIcon} alt="HRVibe Logo Icon" className="w-8 h-8" />
           </Link>
         </div>
@@ -113,7 +116,7 @@ export const Header = (props: {
           </ul>
 
           {/* <!-- User Area --> */}
-          <DropdownUser />
+          <DropdownUser user={user} onLogout={logout} />
           {/* <!-- User Area --> */}
         </div>
       </div>

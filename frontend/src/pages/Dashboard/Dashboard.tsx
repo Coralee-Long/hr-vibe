@@ -1,5 +1,5 @@
 import { DefaultLayout } from "@/layout/DefaultLayout.tsx";
-import { DashMetrics } from "@/components/StatsCards/DashMetrics/DashMetrics.tsx";
+import { DashMetrics } from "@/components/cards/DashMetrics/DashMetrics.tsx";
 
 export const Dashboard = () => {
   return (

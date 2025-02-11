@@ -1,9 +1,9 @@
 import React, { ReactNode } from "react";
-import { ThemeToggleHeader } from "@/components/ThemeToggleHeader/ThemeToggleHeader.tsx";
+import { ThemeToggleHeader } from "@/components/headers/ThemeToggleHeader/ThemeToggleHeader.tsx";
 
-export const LayoutNoHeader: React.FC<{ children: ReactNode }> = ({
-                                                                 children,
-                                                               }) => {
+export const PublicLayout: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   return (
     <div className="dark:bg-boxdark-2 dark:text-bodydark">
       {/* <!-- ===== Page Wrapper Start ===== --> */}
