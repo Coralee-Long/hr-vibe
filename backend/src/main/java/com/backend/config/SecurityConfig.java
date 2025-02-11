@@ -26,7 +26,10 @@ public class SecurityConfig {
    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
       http
           .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Enable CORS
-          .csrf(csrf -> csrf.disable()) // ✅ Disable CSRF (not needed for OAuth-based auth)
+          .csrf(csrf -> csrf
+                    // Enable CSRF globally, but ignore it for specific endpoints
+                    .ignoringRequestMatchers("/oauth2/**", "/auth/guest", "/auth/logout")
+               )
           .authorizeHttpRequests(auth -> auth
                                      // ✅ Guest Mode Access (Public)
                                      .requestMatchers("/auth/guest").permitAll() // Allow guests to start a session
