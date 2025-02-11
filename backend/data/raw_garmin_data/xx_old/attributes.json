@@ -1,101 +1,127 @@
-[ {
-  "value" : "DisplayMeasure.metric",
-  "key" : "measurement_system",
-  "timestamp" : "2025-01-25 20:57:05.247013"
-}, {
-  "value" : "Gender.female",
-  "key" : "gender",
-  "timestamp" : "2025-01-25 20:57:05.247013"
-}, {
-  "value" : "97.0",
-  "key" : "weight",
-  "timestamp" : "2025-01-25 20:57:05.247013"
-}, {
-  "value" : "1.68",
-  "key" : "height",
-  "timestamp" : "2025-01-25 20:57:05.247013"
-}, {
-  "value" : "35.0",
-  "key" : "vo2max_running",
-  "timestamp" : "2025-01-25 20:57:05.247013"
-}, {
-  "value" : "None",
-  "key" : "vo2max_cycling",
-  "timestamp" : "2025-01-25 20:57:05.247013"
-}, {
-  "value" : "right",
-  "key" : "handedness",
-  "timestamp" : "2025-01-25 20:57:05.247013"
-}, {
-  "value" : "en",
-  "key" : "locale",
-  "timestamp" : "2025-01-25 20:57:05.247013"
-}, {
-  "value" : "Europe/Paris",
-  "key" : "time_zone",
-  "timestamp" : "2025-01-25 20:57:05.247013"
-}, {
-  "value" : "ZA",
-  "key" : "country_code",
-  "timestamp" : "2025-01-25 20:57:05.247013"
-}, {
-  "value" : "333651694",
-  "key" : "id",
-  "timestamp" : "2025-01-25 20:57:05.247013"
-}, {
-  "value" : "coraleelong@gmail.com",
-  "key" : "userName",
-  "timestamp" : "2025-01-25 20:57:05.247013"
-}, {
-  "value" : "Coralee",
-  "key" : "name",
-  "timestamp" : "2025-01-25 20:57:05.247013"
-}, {
-  "value" : "0.0",
-  "key" : "active_time_zone",
-  "timestamp" : "2025-01-25 09:49:59.000000"
-}, {
-  "value" : "DateMode.day_month",
-  "key" : "date_mode",
-  "timestamp" : "2025-01-25 09:49:59.000000"
-}, {
-  "value" : "DateMode.day_month",
-  "key" : "date_format",
-  "timestamp" : "2025-01-25 09:49:59.000000"
-}, {
-  "value" : "1986",
-  "key" : "year_of_birth",
-  "timestamp" : "2025-01-25 09:49:59.000000"
-}, {
-  "value" : "Language.English",
-  "key" : "language",
-  "timestamp" : "2025-01-25 09:49:59.000000"
-}, {
-  "value" : "DisplayMeasure.metric",
-  "key" : "dist_setting",
-  "timestamp" : "2025-01-25 09:49:59.000000"
-}, {
-  "value" : "DisplayMeasure.metric",
-  "key" : "weight_setting",
-  "timestamp" : "2025-01-25 09:49:59.000000"
-}, {
-  "value" : "DisplayPosition.degree_minute_second",
-  "key" : "position_setting",
-  "timestamp" : "2025-01-25 09:49:59.000000"
-}, {
-  "value" : "DisplayMeasure.metric",
-  "key" : "elev_setting",
-  "timestamp" : "2025-01-25 09:49:59.000000"
-}, {
-  "value" : "21:30:00",
-  "key" : "sleep_time",
-  "timestamp" : "2025-01-25 09:49:59.000000"
-}, {
-  "value" : "05:30:00",
-  "key" : "wake_time",
-  "timestamp" : "2025-01-25 09:49:59.000000"
-}, {
-  "value" : "DisplayMeasure.metric",
-  "key" : "speed_setting",
-  "timestamp" : "2025-01-25 09:49:59.000000"
-} ]
+[
+  {
+    "value": "DisplayMeasure.metric",
+    "key": "measurement_system",
+    "timestamp": "2025-01-25 20:57:05.247013"
+  },
+  {
+    "value": "Gender.female",
+    "key": "gender",
+    "timestamp": "2025-01-25 20:57:05.247013"
+  },
+  {
+    "value": "97.0",
+    "key": "weight",
+    "timestamp": "2025-01-25 20:57:05.247013"
+  },
+  {
+    "value": "1.68",
+    "key": "height",
+    "timestamp": "2025-01-25 20:57:05.247013"
+  },
+  {
+    "value": "35.0",
+    "key": "vo2max_running",
+    "timestamp": "2025-01-25 20:57:05.247013"
+  },
+  {
+    "value": "None",
+    "key": "vo2max_cycling",
+    "timestamp": "2025-01-25 20:57:05.247013"
+  },
+  {
+    "value": "right",
+    "key": "handedness",
+    "timestamp": "2025-01-25 20:57:05.247013"
+  },
+  {
+    "value": "en",
+    "key": "locale",
+    "timestamp": "2025-01-25 20:57:05.247013"
+  },
+  {
+    "value": "Europe/Paris",
+    "key": "time_zone",
+    "timestamp": "2025-01-25 20:57:05.247013"
+  },
+  {
+    "value": "ZA",
+    "key": "country_code",
+    "timestamp": "2025-01-25 20:57:05.247013"
+  },
+  {
+    "value": "333651694",
+    "key": "id",
+    "timestamp": "2025-01-25 20:57:05.247013"
+  },
+  {
+    "value": "coraleelong@gmail.com",
+    "key": "userName",
+    "timestamp": "2025-01-25 20:57:05.247013"
+  },
+  {
+    "value": "Coralee",
+    "key": "name",
+    "timestamp": "2025-01-25 20:57:05.247013"
+  },
+  {
+    "value": "0.0",
+    "key": "active_time_zone",
+    "timestamp": "2025-01-25 09:49:59.000000"
+  },
+  {
+    "value": "DateMode.day_month",
+    "key": "date_mode",
+    "timestamp": "2025-01-25 09:49:59.000000"
+  },
+  {
+    "value": "DateMode.day_month",
+    "key": "date_format",
+    "timestamp": "2025-01-25 09:49:59.000000"
+  },
+  {
+    "value": "1986",
+    "key": "year_of_birth",
+    "timestamp": "2025-01-25 09:49:59.000000"
+  },
+  {
+    "value": "Language.English",
+    "key": "language",
+    "timestamp": "2025-01-25 09:49:59.000000"
+  },
+  {
+    "value": "DisplayMeasure.metric",
+    "key": "dist_setting",
+    "timestamp": "2025-01-25 09:49:59.000000"
+  },
+  {
+    "value": "DisplayMeasure.metric",
+    "key": "weight_setting",
+    "timestamp": "2025-01-25 09:49:59.000000"
+  },
+  {
+    "value": "DisplayPosition.degree_minute_second",
+    "key": "position_setting",
+    "timestamp": "2025-01-25 09:49:59.000000"
+  },
+  {
+    "value": "DisplayMeasure.metric",
+    "key": "elev_setting",
+    "timestamp": "2025-01-25 09:49:59.000000"
+  },
+  {
+    "value": "21:30:00",
+    "key": "sleep_time",
+    "timestamp": "2025-01-25 09:49:59.000000"
+  },
+  {
+    "value": "05:30:00",
+    "key": "wake_time",
+    "timestamp": "2025-01-25 09:49:59.000000"
+  },
+  {
+    "value": "DisplayMeasure.metric",
+    "key": "speed_setting",
+    "timestamp": "2025-01-25 09:49:59.000000"
+  }
+]

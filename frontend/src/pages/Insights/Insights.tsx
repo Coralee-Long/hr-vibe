@@ -1,5 +1,5 @@
 import { DefaultLayout } from "@/layout/DefaultLayout.tsx";
-import { InsightsChart } from "@/components/Charts/InsightsChart.tsx";
+import { InsightsChart } from "@/components/charts/InsightsChart.tsx";
 
 export const Insights = () => {
   return (

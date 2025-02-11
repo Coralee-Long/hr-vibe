@@ -9,11 +9,19 @@ type RecentDailySummariesContextType = {
 };
 
 // Create the context with default values
-const RecentDailySummariesContext = createContext<RecentDailySummariesContextType | undefined>(undefined);
+const RecentDailySummariesContext = createContext<
+  RecentDailySummariesContextType | undefined
+>(undefined);
 
 // Provider component
-export const RecentDailySummariesProvider = ({ children }: { children: ReactNode }) => {
-  const [summaries, setSummaries] = useState<RecentDailySummariesDTO>(mockRecentDailySummaries);
+export const RecentDailySummariesProvider = ({
+  children,
+}: {
+  children: ReactNode;
+}) => {
+  const [summaries, setSummaries] = useState<RecentDailySummariesDTO>(
+    mockRecentDailySummaries
+  );
 
   return (
     <RecentDailySummariesContext.Provider value={{ summaries, setSummaries }}>
@@ -26,7 +34,9 @@ export const RecentDailySummariesProvider = ({ children }: { children: ReactNode
 export const useRecentDailySummaries = (): RecentDailySummariesContextType => {
   const context = useContext(RecentDailySummariesContext);
   if (!context) {
-    throw new Error("useRecentDailySummaries must be used within a RecentDailySummariesProvider");
+    throw new Error(
+      "useRecentDailySummaries must be used within a RecentDailySummariesProvider"
+    );
   }
   return context;
 };

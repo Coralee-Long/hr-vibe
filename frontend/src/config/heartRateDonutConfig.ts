@@ -7,7 +7,14 @@ export const heartRateDonutConfig: ApexOptions = {
     type: "donut",
     width: "100%",
   },
-  colors: ["#F8D66D", "#FFB54C", "#FF6961", "transparent", "#88CFF1", "#8CD47E"],
+  colors: [
+    "#F8D66D",
+    "#FFB54C",
+    "#FF6961",
+    "transparent",
+    "#88CFF1",
+    "#8CD47E",
+  ],
   labels: ["Zone 3", "Zone 4", "Zone 5", "EMPTY", "Zone 1", "Zone 2"],
   legend: { show: false, position: "bottom" },
   plotOptions: {

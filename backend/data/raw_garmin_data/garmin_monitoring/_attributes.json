@@ -1,33 +1,42 @@
-[ {
-  "value" : "6",
-  "key" : "db.version",
-  "timestamp" : "2025-01-25 20:57:05.247014"
-}, {
-  "value" : "1",
-  "key" : "monitoring_info.version",
-  "timestamp" : "2025-01-25 20:57:05.247014"
-}, {
-  "value" : "1",
-  "key" : "monitoring_hr.version",
-  "timestamp" : "2025-01-25 20:57:05.247014"
-}, {
-  "value" : "1",
-  "key" : "monitoring_intensity.version",
-  "timestamp" : "2025-01-25 20:57:05.247014"
-}, {
-  "value" : "1",
-  "key" : "monitoring_climb.version",
-  "timestamp" : "2025-01-25 20:57:05.247014"
-}, {
-  "value" : "2",
-  "key" : "monitoring.version",
-  "timestamp" : "2025-01-25 20:57:05.247014"
-}, {
-  "value" : "1",
-  "key" : "monitoring_rr.version",
-  "timestamp" : "2025-01-25 20:57:05.247014"
-}, {
-  "value" : "1",
-  "key" : "monitoring_pulse_ox.version",
-  "timestamp" : "2025-01-25 20:57:05.247014"
-} ]
+[
+  {
+    "value": "6",
+    "key": "db.version",
+    "timestamp": "2025-01-25 20:57:05.247014"
+  },
+  {
+    "value": "1",
+    "key": "monitoring_info.version",
+    "timestamp": "2025-01-25 20:57:05.247014"
+  },
+  {
+    "value": "1",
+    "key": "monitoring_hr.version",
+    "timestamp": "2025-01-25 20:57:05.247014"
+  },
+  {
+    "value": "1",
+    "key": "monitoring_intensity.version",
+    "timestamp": "2025-01-25 20:57:05.247014"
+  },
+  {
+    "value": "1",
+    "key": "monitoring_climb.version",
+    "timestamp": "2025-01-25 20:57:05.247014"
+  },
+  {
+    "value": "2",
+    "key": "monitoring.version",
+    "timestamp": "2025-01-25 20:57:05.247014"
+  },
+  {
+    "value": "1",
+    "key": "monitoring_rr.version",
+    "timestamp": "2025-01-25 20:57:05.247014"
+  },
+  {
+    "value": "1",
+    "key": "monitoring_pulse_ox.version",
+    "timestamp": "2025-01-25 20:57:05.247014"
+  }
+]
