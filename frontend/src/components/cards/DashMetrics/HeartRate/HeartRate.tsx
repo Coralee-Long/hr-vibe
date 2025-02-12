@@ -1,9 +1,6 @@
-// HeartRate.tsx
-
 import { HeartRateDonutChart } from "@/components/charts/HeartRateDonutChart";
 import { LineChart } from "@/components/charts/LineChart.tsx";
 import { useRecentDailySummaries } from "@/context/RecentDailySummariesContext";
-import { useEffect } from "react";
 
 export const HeartRate = ({ loading }: { loading: boolean }) => {
   // Retrieve the recent daily summaries from the context
@@ -11,10 +8,6 @@ export const HeartRate = ({ loading }: { loading: boolean }) => {
 
   // Use the rhrAvg (resting heart rate average) array as data for the LineChart.
   const restingHrData = summaries?.rhrAvg || [];
-
-  useEffect(() => {
-    console.log("Recent Daily Summaries:", summaries);
-  }, []);
 
   return (
     <div className="flex flex-col items-center justify-start w-full h-full rounded-lg border border-stroke bg-white p-4 shadow-md dark:border-strokedark dark:bg-boxdark md:p-6 xl:p-7.5">

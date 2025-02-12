@@ -58,12 +58,12 @@ export const RecentDailySummariesProvider = ({ children }: { children: ReactNode
     try {
       // Call the GarminDataService API to get recent daily summaries.
       const data = await GarminDataService.getRecentDailySummaries(referenceDate);
-      console.log("Fetched recent daily summaries data:", data);
+      // console.log("Fetched recent daily summaries data:", data);
       // Update the summaries state.
       setSummaries(data);
       // If the data includes a 'latestDay' property, update latestDateAvailable.
       if (data.latestDay) {
-        console.log("Setting latestDateAvailable to:", data.latestDay);
+        // console.log("Setting latestDateAvailable to:", data.latestDay);
         setLatestDateAvailable(data.latestDay);
       } else {
         console.warn("latestDay property not found in data");
@@ -93,7 +93,7 @@ export const RecentDailySummariesProvider = ({ children }: { children: ReactNode
 
   // Log changes to latestDateAvailable for debugging purposes.
   useEffect(() => {
-    console.log("Latest Date Available in context:", latestDateAvailable);
+    // console.log("Latest Date Available in context:", latestDateAvailable);
   }, [latestDateAvailable]);
 
   // Provide the context values (state and fetching functions) to child components.

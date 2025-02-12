@@ -17,7 +17,7 @@ export const HeartRateDonutChart: React.FC = () => {
   });
 
   useEffect(() => {
-    console.log("Current Day Data:", currentDayData);
+    // console.log("Current Day Data:", currentDayData);
   }, []);
 
   return (

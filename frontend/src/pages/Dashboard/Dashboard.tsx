@@ -24,7 +24,7 @@ export const Dashboard = () => {
         if (data && data.length > 0) {
           // Assume the DTO has a "day" field that is a string like "2025-01-25"
           setDateLimit(data[0].day);
-          console.log("Fetched dateLimit from /garmin/days:", data[0].day);
+          // console.log("Fetched dateLimit from /garmin/days:", data[0].day);
         }
       })
       .catch((error) => console.error("Error fetching day limit:", error));

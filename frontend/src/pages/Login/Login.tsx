@@ -6,7 +6,7 @@ import { SuccessNotification } from "@/common/SuccessNotification.tsx";
 import { useState } from "react";
 
 export const Login = () => {
-  const { loginAsGuest } = useAuth(); // Use AuthContext for guest login
+  const { loginAsGuest } = useAuth();
   const navigate = useNavigate();
   const [notificationVisible, setNotificationVisible] =
     useState<boolean>(false);

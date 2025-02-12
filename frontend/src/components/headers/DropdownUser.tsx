@@ -152,7 +152,8 @@ const DropdownUser = ({
           </li>
         </ul>
         <button
-          onClick={onLogout}
+          // Wrap the call in an inline function and use 'void' to ignore the returned promise.
+          onClick={() => void onLogout()}
           className="flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out hover:text-primary lg:text-base"
         >
           <svg
