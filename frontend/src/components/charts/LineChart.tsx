@@ -2,7 +2,7 @@
 import React from "react";
 import ReactApexChart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
-import { Loader } from "@/common/Loader"; // Import your Loader component
+import { LoaderNoBg } from "@/common/LoaderNoBg"; // Import your LoaderNoBg component
 
 export interface LineChartProps {
   /**
@@ -84,7 +84,7 @@ export const LineChart: React.FC<LineChartProps> = ({
 
   return (
     <div className="line-chart-container">
-      {loading ? <Loader /> : <ReactApexChart options={options} series={series} type="line" height={height} />}
+      {loading ? <LoaderNoBg /> : <ReactApexChart options={options} series={series} type="line" height={height} />}
     </div>
   );
 };

@@ -8,6 +8,7 @@ import "./css/style.css";
 import "./css/satoshi.css";
 import "./css/simple-datatables.css";
 
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <BrowserRouter>
