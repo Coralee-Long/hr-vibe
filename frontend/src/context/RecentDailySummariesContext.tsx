@@ -1,42 +1,74 @@
-import { createContext, useContext, useState, ReactNode } from "react";
+// RecentDailySummariesContext.tsx
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from "react";
+import GarminDataService from "@/api/services/garminDataService";
 import { RecentDailySummariesDTO } from "@/types/RecentDailySummariesDTO";
-import { mockRecentDailySummaries } from "@/mocks/mockRecentDailySummaries.ts";
+import { CurrentDaySummaryDTO } from "@/types/CurrentDaySummaryDTO";
 
-// Define the shape of the context
-type RecentDailySummariesContextType = {
-  summaries: RecentDailySummariesDTO;
-  setSummaries: (summaries: RecentDailySummariesDTO) => void;
-};
+interface RecentDailySummariesContextProps {
+  summaries: RecentDailySummariesDTO | null;
+  currentDayData: CurrentDaySummaryDTO | null;
+  latestDateAvailable: string | null;
+  fetchRecentDailySummaries: (referenceDate: string) => Promise<void>;
+  fetchCurrentDayData: (day: string) => Promise<void>;
+}
 
-// Create the context with default values
-const RecentDailySummariesContext = createContext<
-  RecentDailySummariesContextType | undefined
->(undefined);
+const RecentDailySummariesContext = createContext<RecentDailySummariesContextProps | undefined>(undefined);
 
-// Provider component
-export const RecentDailySummariesProvider = ({
-  children,
-}: {
-  children: ReactNode;
-}) => {
-  const [summaries, setSummaries] = useState<RecentDailySummariesDTO>(
-    mockRecentDailySummaries
-  );
+export const RecentDailySummariesProvider = ({ children }: { children: ReactNode }) => {
+  const [summaries, setSummaries] = useState<RecentDailySummariesDTO | null>(null);
+  const [currentDayData, setCurrentDayData] = useState<CurrentDaySummaryDTO | null>(null);
+  const [latestDateAvailable, setLatestDateAvailable] = useState<string | null>(null);
+
+  const fetchRecentDailySummaries = useCallback(async (referenceDate: string) => {
+    try {
+      const data = await GarminDataService.getRecentDailySummaries(referenceDate);
+      console.log("Fetched recent daily summaries data:", data);
+      setSummaries(data);
+      if (data.latestDay) {
+        console.log("Setting latestDateAvailable to:", data.latestDay);
+        setLatestDateAvailable(data.latestDay);
+      } else {
+        console.warn("latestDay property not found in data");
+        setLatestDateAvailable(null);
+      }
+    } catch (error) {
+      console.error("Error fetching recent daily summaries:", error);
+    }
+  }, []);
+
+  const fetchCurrentDayData = useCallback(async (day: string) => {
+    try {
+      const data = await GarminDataService.getDaySummary(day);
+      setCurrentDayData(data);
+    } catch (error) {
+      console.error("Error fetching current day data:", error);
+    }
+  }, []);
+
+  // Log whenever latestDateAvailable changes.
+  useEffect(() => {
+    console.log("Latest Date Available in context:", latestDateAvailable);
+  }, [latestDateAvailable]);
 
   return (
-    <RecentDailySummariesContext.Provider value={{ summaries, setSummaries }}>
+    <RecentDailySummariesContext.Provider
+      value={{
+        summaries,
+        currentDayData,
+        latestDateAvailable,
+        fetchRecentDailySummaries,
+        fetchCurrentDayData,
+      }}
+    >
       {children}
     </RecentDailySummariesContext.Provider>
   );
 };
 
-// Custom hook to use the context
-export const useRecentDailySummaries = (): RecentDailySummariesContextType => {
+export const useRecentDailySummaries = (): RecentDailySummariesContextProps => {
   const context = useContext(RecentDailySummariesContext);
   if (!context) {
-    throw new Error(
-      "useRecentDailySummaries must be used within a RecentDailySummariesProvider"
-    );
+    throw new Error("useRecentDailySummaries must be used within a RecentDailySummariesProvider");
   }
   return context;
 };

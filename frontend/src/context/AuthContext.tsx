@@ -66,7 +66,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const response = await axios.get(`${backendUrl}/auth/admin`, {
         withCredentials: true,
       });
-      console.log("Admin authentication successful:", response.data);
       setUser(formatUserData(response.data, "ADMIN"));
     } catch (adminError) {
       console.warn("Admin check failed, trying guest endpoint...", adminError);
@@ -74,7 +73,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const guestResponse = await axios.get(`${backendUrl}/auth/guest`, {
           withCredentials: true,
         });
-        console.log("Guest authentication successful:", guestResponse.data);
         setUser(formatUserData(guestResponse.data, "GUEST"));
       } catch (guestError) {
         console.warn("Guest check failed:", guestError);
@@ -93,7 +91,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const response = await axios.get(`${backendUrl}/auth/guest`, {
         withCredentials: true,
       });
-      console.log("Guest login response:", response.data);
       setUser(formatUserData(response.data, "GUEST"));
     } catch (error) {
       console.error("Failed to log in as guest:", error);
@@ -110,7 +107,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         {},
         { withCredentials: true }
       );
-      console.log("Logout successful");
       setUser(null);
       navigate("/");
     } catch (error) {

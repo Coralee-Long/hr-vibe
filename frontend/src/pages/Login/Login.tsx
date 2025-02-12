@@ -46,7 +46,6 @@ export const Login = () => {
     setNotificationType("guest");
     setNotificationVisible(true);
     if (!debugNoRedirect) {
-      // Delay the redirect slightly so the user can see the notification.
       setTimeout(() => {
         navigate("/dashboard");
       }, 1000);
