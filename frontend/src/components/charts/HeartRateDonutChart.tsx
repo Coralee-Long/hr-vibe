@@ -26,6 +26,7 @@ export const HeartRateDonutChart: React.FC = () => {
         options={heartRateDonutConfig}
         series={state.series}
         type="donut"
+        height={275}
       />
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
         <h5 className="text-2xl font-semibold text-black dark:text-white">

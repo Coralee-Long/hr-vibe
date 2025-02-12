@@ -26,10 +26,10 @@ export const Card: React.FC<CardProps> = ({ title, icon, children, className = "
   return (
     <div
       // Fixed height of 650px, along with existing padding, borders, and other styling.
-      className={`flex flex-col items-center justify-start w-full h-[650px] rounded-lg border border-stroke bg-white p-4 shadow-md dark:border-strokedark dark:bg-boxdark md:p-6 xl:p-7.5 ${className}`}
+      className={`flex flex-col items-center justify-between w-full h-[650px] rounded-lg border border-stroke bg-white p-4 shadow-md dark:border-strokedark dark:bg-boxdark md:p-6 xl:p-7.5 ${className}`}
     >
       {/* Card Header */}
-      <div className="mb-5 flex w-full flex-row items-center gap-3">
+      <div className="mb-8 flex w-full flex-row items-center gap-3">
         {icon}
         <h2 className="text-title-md2 font-bold text-black dark:text-white">{title}</h2>
       </div>
