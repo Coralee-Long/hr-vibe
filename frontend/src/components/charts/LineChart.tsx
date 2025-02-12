@@ -1,57 +1,20 @@
-// LineChart.tsx
 import React from "react";
 import ReactApexChart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
-import { LoaderNoBg } from "@/common/LoaderNoBg"; // Import your LoaderNoBg component
+import { LoaderNoBg } from "@/common/LoaderNoBg";
 
 export interface LineChartProps {
-  /**
-   * The title displayed above the chart.
-   */
   title: string;
-  /**
-   * The label for the data series (used in the legend and tooltips).
-   */
   label: string;
-  /**
-   * The array of data points to be plotted.
-   */
   data: number[];
-  /**
-   * The color of the line (any valid CSS color string).
-   * Defaults to "#13C296".
-   */
   color?: string;
-  /**
-   * The style of line connection.
-   * Allowed values:
-   * - "smooth": smooth curved lines,
-   * - "straight": direct linear connections,
-   * - "stepline": step-like transitions.
-   * Defaults to "straight".
-   */
   lineType?: "smooth" | "straight" | "stepline";
-  /**
-   * The stroke (line) width in pixels.
-   * Defaults to 2.
-   */
   strokeWidth?: number;
-  /**
-   * The size of the markers on the line.
-   * Setting this to 0 hides the markers.
-   * Defaults to 0.
-   */
   markersSize?: number;
-  /**
-   * The height of the chart in pixels.
-   * Defaults to 200.
-   */
   height?: number;
-  /**
-   * Whether to display a loading spinner instead of the chart.
-   * Defaults to false.
-   */
   loading?: boolean;
+  // New prop for the latest day from DateNavigator (e.g. "2025-01-24")
+  latestDay: string;
 }
 
 export const LineChart: React.FC<LineChartProps> = ({
@@ -64,8 +27,24 @@ export const LineChart: React.FC<LineChartProps> = ({
                                                       markersSize = 0,
                                                       height = 200,
                                                       loading = false,
+                                                      latestDay,
                                                     }) => {
+  // Create a Date object from the latestDay prop.
+  const latestDate = new Date(latestDay);
+
+  // Generate an array of 7 dates ending on latestDay.
+  // For example, if latestDay is "2025-01-24", this produces:
+  // ["18.01", "19,01", "20.01"...]
+  const last7Dates = Array.from({ length: 7 }, (_, i) => {
+    const date = new Date(latestDate);
+    date.setDate(date.getDate() - (6 - i));
+    const day = date.getDate().toString().padStart(2, "0");
+    const month = (date.getMonth() + 1).toString().padStart(2, "0");
+    return `${day}.${month}`;
+  });
+
   const series = [{ name: label, data }];
+
   const options: ApexOptions = {
     chart: {
       type: "line",
@@ -78,8 +57,21 @@ export const LineChart: React.FC<LineChartProps> = ({
     },
     markers: { size: markersSize },
     colors: [color],
-    title: { text: title, align: "left" },
-    xaxis: { type: "category" },
+    title: {
+      text: title,
+      align: "left",
+      style: { color: "#F7F9FC" },
+    },
+    xaxis: {
+      type: "category",
+      categories: last7Dates, // Set the x-axis labels here.
+      axisBorder: {
+        show: false, // Hides the axis border (the line at the bottom)
+      },
+      axisTicks: {
+        show: false, // Hides the tick marks along the axis
+      },
+    },
   };
 
   return (
@@ -89,4 +81,3 @@ export const LineChart: React.FC<LineChartProps> = ({
   );
 };
 
-export default LineChart;

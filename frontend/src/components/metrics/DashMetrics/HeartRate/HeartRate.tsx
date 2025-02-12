@@ -3,7 +3,7 @@ import { LineChart } from "@/components/charts/LineChart.tsx";
 import { LoaderNoBg } from "@/common/LoaderNoBg";
 import { useRecentDailySummaries } from "@/context/RecentDailySummariesContext.tsx";
 
-export const HeartRate = ({ loading }: { loading: boolean }) => {
+export const HeartRate = ({ loading, referenceDate }: { loading: boolean, referenceDate: string }) => {
   // Get heart rate data (rhrAvg) from the context.
   const { summaries } = useRecentDailySummaries();
   const restingHrData = summaries?.rhrAvg || [];
@@ -28,6 +28,7 @@ export const HeartRate = ({ loading }: { loading: boolean }) => {
         color="#FF6961"
         // Since we're handling the loader here, we can pass loading={false}
         loading={false}
+        latestDay={referenceDate}
       />
     </div>
   );

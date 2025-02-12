@@ -90,7 +90,7 @@ export const Dashboard = () => {
           such as HeartRate, use context to extract their specific data.
       */}
       <div className="grid grid-cols-1 gap-4 md:gap-6 2xl:gap-7.5">
-        <DashMetrics loading={isLoading} summaries={summaries} />
+        <DashMetrics loading={isLoading} summaries={summaries} referenceDate={referenceDate} />
       </div>
     </DefaultLayout>
   );

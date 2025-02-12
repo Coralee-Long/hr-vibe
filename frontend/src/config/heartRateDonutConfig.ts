@@ -5,7 +5,7 @@ export const heartRateDonutConfig: ApexOptions = {
   chart: {
     fontFamily: "Satoshi, sans-serif",
     type: "donut",
-    width: "100%",
+    width: "90%",
   },
   colors: [
     "#F8D66D",
