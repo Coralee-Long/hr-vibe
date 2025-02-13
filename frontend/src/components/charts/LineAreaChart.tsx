@@ -2,10 +2,10 @@ import React from "react";
 import ReactApexChart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import { LoaderNoBg } from "@/common/LoaderNoBg";
-import { LineChartProps } from "@/types/LineChartProps";
-import { getDefaultLineChartOptions } from "@/config/ChartOptions.ts";
+import { LineAreaChartProps } from "@/types/LineAreaChartProps";
+import { getDefaultLineAreaChartOptions } from "@/config/ChartOptions.ts";
 
-export const LineChart: React.FC<LineChartProps> = (props) => {
+export const LineAreaChart: React.FC<LineAreaChartProps> = (props) => {
   const {
     options,
     title,
@@ -22,13 +22,13 @@ export const LineChart: React.FC<LineChartProps> = (props) => {
   } = props;
 
   // Build default options from individual props.
-  const defaultOptions: ApexOptions = getDefaultLineChartOptions(
+  const defaultOptions: ApexOptions = getDefaultLineAreaChartOptions(
     title || "",
     categories || [],
     colors || [],
     lineType,
     strokeWidth,
-    markersSize
+    markersSize,
   );
 
   // If the caller provided an options object, use that.
@@ -45,7 +45,7 @@ export const LineChart: React.FC<LineChartProps> = (props) => {
         <ReactApexChart
           options={computedOptions}
           series={series}
-          type="line"
+          type="area"
           height={height}
           width={width}
         />

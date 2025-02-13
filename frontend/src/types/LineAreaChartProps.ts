@@ -1,6 +1,6 @@
 import { ApexOptions } from "apexcharts";
 
-export type LineChartProps = {
+export type LineAreaChartProps = {
   /**
    * The ApexChart options object.
    * If provided, it will override the other configuration props.

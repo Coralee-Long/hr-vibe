@@ -1,5 +1,8 @@
 import React from "react";
 import { Tooltip } from "@/common/ToolTip.tsx";
+import { FaRegCalendar } from "react-icons/fa";
+// import { TbPlayerTrackPrevFilled, TbPlayerTrackNextFilled } from "react-icons/tb";
+import { GrLinkPrevious, GrLinkNext } from "react-icons/gr";
 
 interface DateNavigatorProps {
   /**
@@ -47,13 +50,12 @@ export const DateNavigator: React.FC<DateNavigatorProps> = ({
   const disableNext = currentDate >= latestDate;
 
   return (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center justify-end space-x-2 rounded border border-stroke bg-white py-2 px-4 text-sm font-medium shadow-card-2 focus-visible:outline-none dark:border-strokedark dark:bg-boxdark">
       <button onClick={handlePrev} className="p-2" aria-label="Previous Day">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
+        <GrLinkPrevious size={16} />
       </button>
-      <div className="text-lg font-medium">{currentDate}</div>
+      <FaRegCalendar size={20} />
+      <div className="text-lg font-medium p-1">{currentDate}</div>
       <Tooltip
         active={disableNext}
         position="right"
@@ -68,9 +70,7 @@ export const DateNavigator: React.FC<DateNavigatorProps> = ({
             className={`p-2 ${disableNext ? "cursor-not-allowed opacity-50" : ""}`}
             aria-label="Next Day"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
+            <GrLinkNext size={16} />
           </button>
         </span>
       </Tooltip>

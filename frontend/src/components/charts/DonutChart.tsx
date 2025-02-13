@@ -2,50 +2,43 @@ import React from "react";
 import ReactApexChart from "react-apexcharts";
 import { ApexOptions } from "apexcharts";
 import { LoaderNoBg } from "@/common/LoaderNoBg";
-import { LineChartProps } from "@/types/LineChartProps";
-import { getDefaultLineChartOptions } from "@/config/ChartOptions.ts";
+import { DonutChartProps } from "@/types/DonutChartProps";
+import { getDefaultDonutChartOptions } from "@/config/ChartOptions";
 
-export const LineChart: React.FC<LineChartProps> = (props) => {
+export const DonutChart: React.FC<DonutChartProps> = (props) => {
   const {
     options,
     title,
     series,
-    categories,
+    labels,
     colors,
-    lineType = "straight",
-    strokeWidth = 2,
-    markersSize = 0,
     height,
     width = 380,
     loading = false,
     extraOptions = {},
   } = props;
 
-  // Build default options from individual props.
-  const defaultOptions: ApexOptions = getDefaultLineChartOptions(
+  // Generate default options
+  const defaultOptions: ApexOptions = getDefaultDonutChartOptions(
     title || "",
-    categories || [],
-    colors || [],
-    lineType,
-    strokeWidth,
-    markersSize
+    labels || [],
+    colors || []
   );
 
-  // If the caller provided an options object, use that.
-  // Otherwise, use our default options merged with any extra options.
+  // Merge provided options with defaults
   const computedOptions: ApexOptions = options
     ? options
     : { ...defaultOptions, ...extraOptions };
 
   return (
-    <div className="line-chart-container">
+    <div className="relative w-full flex justify-center items-center">
       {loading ? (
         <LoaderNoBg />
       ) : (
         <ReactApexChart
           options={computedOptions}
           series={series}
-          type="line"
+          type="donut"
           height={height}
           width={width}
         />
@@ -53,4 +46,3 @@ export const LineChart: React.FC<LineChartProps> = (props) => {
     </div>
   );
 };
-

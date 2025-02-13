@@ -37,7 +37,7 @@ export const HeartRate: React.FC<HeartRateProps> = ({ loading, referenceDate: _r
 
   if (loading) {
     return (
-      <div className="min-h-[650px] flex items-center justify-center">
+      <div className=" flex h-full items-center justify-center">
         <LoaderNoBg />
       </div>
     );
@@ -50,9 +50,9 @@ export const HeartRate: React.FC<HeartRateProps> = ({ loading, referenceDate: _r
   const options = HeartRateLineChartConfig("Resting Heart Rate", categories, ["#FF6961"]);
 
   return (
-    <div>
-      <HeartRateDonutChart />
-      <LineChart options={options} series={series} height={225} loading={false} />
+    <div className="charts-container">
+      <HeartRateDonutChart height={250} />
+      <LineChart options={options} series={series} height={250} loading={false} />
     </div>
   );
 };

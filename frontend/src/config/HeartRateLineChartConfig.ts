@@ -16,7 +16,7 @@ export const HeartRateLineChartConfig = (
   categories: string[],
   colors: string[],
   lineType: "smooth" | "straight" | "stepline" = "straight",
-  strokeWidth: number = 2,
+  strokeWidth: number = 3,
   markersSize: number = 0
 ): ApexOptions => ({
   chart: {

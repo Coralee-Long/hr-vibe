@@ -1,8 +1,8 @@
 // BodyBattery.tsx
 import React from "react";
-import { LineChart } from "@/components/charts/LineChart";
-import { LoaderNoBg } from "@/common/LoaderNoBg";
-import { useRecentDailySummaries } from "@/context/RecentDailySummariesContext";
+import { LineAreaChart } from "@/components/charts/LineAreaChart.tsx"
+import { LoaderNoBg } from "@/common/LoaderNoBg.tsx";
+import { useRecentDailySummaries } from "@/context/RecentDailySummariesContext.tsx";
 import { BodyBatteryLineChartConfig } from "@/config/BodyBatteryLineChartConfig";
 
 /**
@@ -38,7 +38,7 @@ export const BodyBattery: React.FC<BodyBatteryProps> = ({ loading, referenceDate
 
   if (loading) {
     return (
-      <div className="min-h-[350px] flex items-center justify-center">
+      <div className="flex h-full items-center justify-center">
         <LoaderNoBg />
       </div>
     );
@@ -57,10 +57,14 @@ export const BodyBattery: React.FC<BodyBatteryProps> = ({ loading, referenceDate
   const options = BodyBatteryLineChartConfig("Body Battery", categories, colors, bbMinData, bbMaxData);
 
   return (
-    <div className="h-[350px]">
-      <LineChart options={options} series={series} height={450} loading={false} />
+    <div className="charts-container">
+      <LineAreaChart
+        options={options}
+        series={series}
+        height={500}
+        loading={false}
+      />
     </div>
   );
 };
 
-export default BodyBattery;

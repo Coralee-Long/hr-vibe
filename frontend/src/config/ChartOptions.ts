@@ -43,3 +43,73 @@ export const getDefaultLineChartOptions = (
     axisTicks: { show: false },
   },
 });
+
+export const getDefaultLineAreaChartOptions = (
+  title: string,
+  last7Dates: string[],
+  colors: string[],
+  lineType: "smooth" | "straight" | "stepline" = "smooth",
+  strokeWidth: number = 3,
+  markersSize: number = 0,
+): ApexOptions => ({
+  chart: {
+    type: "area",
+    zoom: { enabled: false },
+    toolbar: { show: false },
+  },
+  stroke: {
+    curve: lineType,
+    width: strokeWidth,
+  },
+  markers: { size: markersSize },
+  colors,
+  title: {
+    text: title,
+    align: "left",
+    style: { color: "#AEB7C0" },
+  },
+  xaxis: {
+    type: "category",
+    categories: last7Dates,
+    axisBorder: { show: false },
+    axisTicks: { show: false },
+  },
+});
+
+/**
+ * Generates default options for a donut chart.
+ *
+ * @param title - The chart title.
+ * @param labels - The labels for each segment.
+ * @param colors - The color scheme.
+ * @returns An ApexOptions object with the default settings.
+ */
+export const getDefaultDonutChartOptions = (
+  title: string,
+  labels: string[],
+  colors: string[]
+): ApexOptions => ({
+  chart: {
+    fontFamily: "Satoshi, sans-serif",
+    type: "donut",
+    toolbar: { show: false },
+  },
+  colors,
+  labels,
+  legend: { show: false, position: "bottom" },
+  plotOptions: {
+    pie: {
+      donut: {
+        size: "70%",
+        background: "transparent",
+      },
+    },
+  },
+  dataLabels: { enabled: false },
+  title: {
+    text: title,
+    align: "left",
+    style: { color: "#AEB7C0" },
+  },
+});
+
