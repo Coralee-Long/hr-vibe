@@ -1,52 +1,55 @@
 import React from "react";
-import { useRecentDailySummaries } from "@/context/RecentDailySummariesContext";
 import { LoaderNoBg } from "@/common/LoaderNoBg";
-import ColumnChart from "@/components/charts/ColumnChart";
-import { SleepColumnChartConfig } from "@/config/SleepColumnChartConfig";
-import { ApexOptions } from "apexcharts";
+import { useRecentDailySummaries } from "@/context/RecentDailySummariesContext";
+import { SleepChartConfig } from "@/config/SleepChartConfig";
+import { GenericChart } from "@/components/charts/GenericChart";
 import {
   convertAndRoundTimeToHours,
-  computeNonRemSleepHours
-} from "@/utils/timeUtils.ts";
-import { SleepChartProps } from "@/types/SleepChartProps.ts";
+  computeNonRemSleepHours,
+} from "@/utils/timeUtils";
 
-export const Sleep: React.FC<SleepChartProps> = ({ loading, referenceDate: _referenceDate, categories }) => {
+/**
+ * Props for the Sleep component.
+ */
+type SleepChartProps = {
   /**
-   * Sleep Component
-   *
-   * Renders a stacked column chart to display sleep data.
-   * Each column represents the total average sleep duration for a day,
-   * split into:
-   * - Non-REM Sleep: Total Sleep Avg minus REM Sleep Avg.
-   * - REM Sleep: REM Sleep Avg.
-   *
-   * For example, if a day has 8 hours total sleep and 2 hours REM sleep,
-   * then the Non-REM segment is 6 hours and the REM segment is 2 hours.
-   *
-   * The y-axis displays hours (0–10) and the x-axis displays date labels.
+   * Indicates if data is still being fetched.
    */
+  loading: boolean;
+  /**
+   * The reference date (format: "YYYY-MM-DD") for which the metrics are displayed.
+   */
+  referenceDate: string;
+  /**
+   * The pre-calculated x-axis categories (last 7 days) passed from the parent.
+   */
+  categories: string[];
+};
+
+/**
+ * Sleep Component
+ *
+ * This component displays sleep metrics as a stacked column chart.
+ * It retrieves sleep data (total sleep and REM sleep) from context,
+ * converts sleep time strings to hours, computes Non-REM sleep hours,
+ * generates chart options using SleepChartConfig,
+ * and renders the chart using the GenericChart component.
+ */
+export const Sleep: React.FC<SleepChartProps> = ({
+                                                   loading,
+                                                   referenceDate: _referenceDate,
+                                                   categories,
+                                                 }) => {
   const { summaries } = useRecentDailySummaries();
   const sleepAvg = summaries?.sleepAvg || [];
   const remSleepAvg = summaries?.remSleepAvg || [];
 
-  // Convert "HH:MM:SS" strings to hours and round to 2 decimals using a utility function.
+  // Convert sleep time strings (formatted as "HH:MM:SS") to hours (rounded to 2 decimals).
   const sleepAvgHours = sleepAvg.map(convertAndRoundTimeToHours);
   const remSleepAvgHours = remSleepAvg.map(convertAndRoundTimeToHours);
 
-  // Compute Non-REM sleep hours (total sleep minus REM sleep) for each day using a helper function.
+  // Compute Non-REM sleep hours for each day (total sleep hours minus REM sleep hours).
   const nonRemSleepHours = computeNonRemSleepHours(sleepAvgHours, remSleepAvgHours);
-
-  // Prepare series data for the stacked column chart.
-  const series = [
-    { name: "REM Sleep", data: remSleepAvgHours },
-    { name: "Non-REM Sleep", data: nonRemSleepHours }
-  ];
-
-  // Define colors for the two segments.
-  const colors = ["#FFB54C", "#3C50E0"]; // Yellow for REM, Indigo for Non-REM.
-
-  // Generate chart options using our custom configuration.
-  const options: ApexOptions = SleepColumnChartConfig("Sleep Duration", categories, colors);
 
   if (loading) {
     return (
@@ -56,9 +59,28 @@ export const Sleep: React.FC<SleepChartProps> = ({ loading, referenceDate: _refe
     );
   }
 
+  // Prepare series data for the stacked column chart.
+  const series = [
+    { name: "REM Sleep", data: remSleepAvgHours },
+    { name: "Non-REM Sleep", data: nonRemSleepHours },
+  ];
+
+  // Define colors for each chart segment.
+  const colors = ["#FFB54C", "#3C50E0"];
+
+  // Generate chart options using the centralized SleepChartConfig.
+  const options = SleepChartConfig("Sleep Duration", categories, colors);
+
   return (
-    <div className="charts-container">
-      <ColumnChart options={options} series={series} height={500} loading={false} />
+    <div className="chart-wrapper w-full p-0 m-0 min-w-[320]">
+      <GenericChart
+        options={options}
+        series={series}
+        type="bar"
+        height={500}
+        width="100%"
+        loading={loading}
+      />
     </div>
   );
 };

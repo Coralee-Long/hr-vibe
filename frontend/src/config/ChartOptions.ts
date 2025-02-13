@@ -1,20 +1,22 @@
-// chartOptions.ts
 import { ApexOptions } from "apexcharts";
 
 /**
  * Generates default options for a line chart.
  *
+ * This function provides a basic configuration for a line chart
+ * and can be used by various metrics that rely on a line chart.
+ *
  * @param title - The chart title.
- * @param last7Dates - The x-axis categories (e.g., formatted dates).
+ * @param categories - The x-axis categories.
  * @param colors - An array of colors for the series.
- * @param lineType - The style of the line (e.g., "straight", "smooth", "stepline").
+ * @param lineType - The style of the line ("straight", "smooth", or "stepline").
  * @param strokeWidth - The stroke width of the lines.
  * @param markersSize - The size of the markers.
- * @returns An ApexOptions object with the default settings.
+ * @returns A generic ApexOptions object for a line chart.
  */
 export const getDefaultLineChartOptions = (
   title: string,
-  last7Dates: string[],
+  categories: string[],
   colors: string[],
   lineType: "smooth" | "straight" | "stepline" = "straight",
   strokeWidth: number = 2,
@@ -38,39 +40,7 @@ export const getDefaultLineChartOptions = (
   },
   xaxis: {
     type: "category",
-    categories: last7Dates,
-    axisBorder: { show: false },
-    axisTicks: { show: false },
-  },
-});
-
-export const getDefaultLineAreaChartOptions = (
-  title: string,
-  last7Dates: string[],
-  colors: string[],
-  lineType: "smooth" | "straight" | "stepline" = "smooth",
-  strokeWidth: number = 3,
-  markersSize: number = 0,
-): ApexOptions => ({
-  chart: {
-    type: "area",
-    zoom: { enabled: false },
-    toolbar: { show: false },
-  },
-  stroke: {
-    curve: lineType,
-    width: strokeWidth,
-  },
-  markers: { size: markersSize },
-  colors,
-  title: {
-    text: title,
-    align: "left",
-    style: { color: "#AEB7C0" },
-  },
-  xaxis: {
-    type: "category",
-    categories: last7Dates,
+    categories,
     axisBorder: { show: false },
     axisTicks: { show: false },
   },
@@ -82,7 +52,7 @@ export const getDefaultLineAreaChartOptions = (
  * @param title - The chart title.
  * @param labels - The labels for each segment.
  * @param colors - The color scheme.
- * @returns An ApexOptions object with the default settings.
+ * @returns A generic ApexOptions object for a donut chart.
  */
 export const getDefaultDonutChartOptions = (
   title: string,
@@ -106,10 +76,10 @@ export const getDefaultDonutChartOptions = (
           show: true,
           name: {
             show: true,
-            fontSize: '22px',
-            fontFamily: 'Helvetica, Arial, sans-serif',
+            fontSize: "22px",
+            fontFamily: "Satoshi, sans-serif",
             fontWeight: 600,
-          }
+          },
         },
       },
     },
@@ -121,4 +91,3 @@ export const getDefaultDonutChartOptions = (
     style: { color: "#AEB7C0" },
   },
 });
-

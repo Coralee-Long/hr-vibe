@@ -1,23 +1,20 @@
-// SleepColumnChartConfig.ts
 import { ApexOptions } from "apexcharts";
 
 /**
- * SleepColumnChartConfig
+ * SleepChartConfig
  *
- * Generates ApexChart options for a stacked column chart displaying sleep data.
- * Two series are expected:
- * - Non-REM Sleep (calculated as Total Sleep Avg minus REM Sleep Avg)
- * - REM Sleep (REM Sleep Avg)
- *
- * The x-axis displays the provided date labels, and the y-axis (in hours)
- * is rounded to whole numbers.
+ * Generates ApexCharts options for the Sleep chart,
+ * a stacked column chart displaying sleep data.
+ * The chart splits daily sleep duration into two segments:
+ * - "REM Sleep": The average REM sleep hours.
+ * - "Non-REM Sleep": Total sleep hours minus REM sleep hours.
  *
  * @param title - The chart title.
- * @param categories - The x-axis labels (e.g., formatted dates such as "18.01").
- * @param colors - Colors for the two series.
- * @returns An ApexOptions object configured for the chart.
+ * @param categories - The x-axis categories (e.g., the last 7 days).
+ * @param colors - An array of two colors: first for REM Sleep, second for Non-REM Sleep.
+ * @returns An ApexOptions object configured for the Sleep chart.
  */
-export const SleepColumnChartConfig = (
+export const SleepChartConfig = (
   title: string,
   categories: string[],
   colors: string[]

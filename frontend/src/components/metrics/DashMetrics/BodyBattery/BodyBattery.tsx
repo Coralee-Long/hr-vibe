@@ -1,14 +1,13 @@
-// BodyBattery.tsx
 import React from "react";
-import { LineAreaChart } from "@/components/charts/LineAreaChart.tsx"
-import { LoaderNoBg } from "@/common/LoaderNoBg.tsx";
-import { useRecentDailySummaries } from "@/context/RecentDailySummariesContext.tsx";
-import { BodyBatteryLineChartConfig } from "@/config/BodyBatteryLineChartConfig";
+import { LoaderNoBg } from "@/common/LoaderNoBg";
+import { useRecentDailySummaries } from "@/context/RecentDailySummariesContext";
+import { BodyBatteryChartConfig } from "@/config/BodyBatteryChartConfig";
+import { GenericChart } from "@/components/charts/GenericChart";
 
 /**
  * Props for the BodyBattery component.
  */
-export type BodyBatteryProps = {
+type BodyBatteryProps = {
   /**
    * Indicates if data is still being fetched.
    */
@@ -28,10 +27,14 @@ export type BodyBatteryProps = {
  *
  * This component displays body battery metrics as a line chart.
  * It retrieves low and high body battery data (bbMin and bbMax) from context,
- * generates chart options using BodyBatteryLineChartConfig,
+ * generates chart options using BodyBatteryChartConfig,
  * and renders the line chart.
  */
-export const BodyBattery: React.FC<BodyBatteryProps> = ({ loading, referenceDate: _referenceDate, categories }) => {
+export const BodyBattery: React.FC<BodyBatteryProps> = ({
+                                                          loading,
+                                                          referenceDate: _referenceDate,
+                                                          categories,
+                                                        }) => {
   const { summaries } = useRecentDailySummaries();
   const bbMinData = summaries?.bbMin || [];
   const bbMaxData = summaries?.bbMax || [];
@@ -53,18 +56,19 @@ export const BodyBattery: React.FC<BodyBatteryProps> = ({ loading, referenceDate
   // Define colors for each series.
   const colors = ["#FF6961", "#10B981"];
 
-  // Generate chart options using the external BodyBatteryLineChartConfig.
-  const options = BodyBatteryLineChartConfig("Body Battery", categories, colors, bbMinData, bbMaxData);
+  // Generate chart options using the external BodyBatteryChartConfig.
+  const options = BodyBatteryChartConfig("Body Battery", categories, colors, bbMinData, bbMaxData);
 
   return (
-    <div className="charts-container">
-      <LineAreaChart
+    <div className="chart-wrapper w-full p-0 m-0 min-w-[320]">
+      <GenericChart
         options={options}
         series={series}
+        type="area"
         height={500}
-        loading={false}
+        width="100%"
+        loading={loading}
       />
     </div>
   );
 };
-

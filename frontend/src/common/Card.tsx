@@ -33,7 +33,7 @@ export const Card: React.FC<CardProps> = ({ title, icon, children, className = "
         {icon}
         <h2 className="text-title-md2 font-bold text-black dark:text-white">{title}</h2>
       </div>
-      <div className="flex-1 min-w-[400]]">
+      <div className="flex-1 w-full">
         {/* Card Content */}
         {children}
       </div>
