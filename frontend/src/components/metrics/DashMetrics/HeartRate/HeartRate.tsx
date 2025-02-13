@@ -51,7 +51,7 @@ export const HeartRate: React.FC<HeartRateProps> = ({ loading, referenceDate: _r
 
   return (
     <div className="charts-container">
-      <HeartRateDonutChart height={250} />
+      <HeartRateDonutChart height={250} loading={false} />
       <LineChart options={options} series={series} height={250} loading={false} />
     </div>
   );

@@ -35,6 +35,7 @@ export const BodyBatteryLineChartConfig = (
         stops: [0, 100],
       },
     },
+    legend: { position: "bottom", offsetY: 10 },
     markers: { size: markersSize },
     colors, // ✅ Ensures the correct colors for the lines
     title: { text: title, align: "left", style: { color: "#AEB7C0" } },

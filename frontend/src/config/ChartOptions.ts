@@ -102,6 +102,15 @@ export const getDefaultDonutChartOptions = (
       donut: {
         size: "70%",
         background: "transparent",
+        labels: {
+          show: true,
+          name: {
+            show: true,
+            fontSize: '22px',
+            fontFamily: 'Helvetica, Arial, sans-serif',
+            fontWeight: 600,
+          }
+        },
       },
     },
   },

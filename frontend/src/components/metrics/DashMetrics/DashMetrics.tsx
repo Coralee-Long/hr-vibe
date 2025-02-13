@@ -90,7 +90,7 @@ export const DashMetrics: React.FC<DashMetricsProps> = ({
         </Card>
 
         <Card title="Sleep" icon={<PiMoonStarsFill size={32} color="#88CFF1" />}>
-          <Sleep />
+          <Sleep loading={loading} referenceDate={referenceDate} categories={categories}/>
         </Card>
 
         <Card title="Stress" icon={<BiHealth size={32} color="#8CD47E" />}>
