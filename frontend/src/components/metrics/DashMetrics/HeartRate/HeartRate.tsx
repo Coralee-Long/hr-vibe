@@ -47,6 +47,16 @@ export const HeartRate: React.FC<HeartRateProps> = ({
     );
   }
 
+  // -------------------------- RADIAL CHART -------------------------- //
+  // Retrieve the resting heart rate value (or use 0 if not available).
+  const rhrValue = currentDayData?.summary?.rhrAvg;
+  const numericRhrValue = typeof rhrValue === "number" ? rhrValue : 0;
+
+  // Generate chart options for the radial bar chart using the new configuration.
+  const radialOptions = HeartRateRadialChartConfig("Resting Heart Rate", numericRhrValue, "Avg Resting HR");
+  const radialSeries = [numericRhrValue];
+
+  // -------------------------- LINE CHART -------------------------- //
   // Build series data for the line chart.
   const lineSeries = [{ name: "Avg RHR", data: restingHrData }];
 
@@ -54,34 +64,28 @@ export const HeartRate: React.FC<HeartRateProps> = ({
   const lineColors = ["#FF6961"];
 
   // Generate chart options for the line chart using HeartRateLineChartConfig.
-  const lineOptions = HeartRateLineChartConfig("Resting Heart Rate", categories, lineColors);
-
-  // Retrieve the resting heart rate value (or use 0 if not available).
-  const rhrValue = currentDayData?.summary?.rhrAvg;
-  const numericRhrValue = typeof rhrValue === "number" ? rhrValue : 0;
-
-  // Generate chart options for the radial bar chart using the new configuration.
-  const radialOptions = HeartRateRadialChartConfig(numericRhrValue, "Avg Resting HR");
-  const radialSeries = [numericRhrValue];
+  const lineOptions = HeartRateLineChartConfig("Last 7 Days", categories, lineColors);
 
   return (
     <div className="charts-container">
-      <div className="chart-wrapper w-full pb-10 m-0 min-w-[320]">
+      {/* ----------- RADIAL CHART ----------- */}
+      <div className="chart-wrapper w-full pb-12 m-0 min-w-[320]">
         <GenericChart
           options={radialOptions}
           series={radialSeries}
           type="radialBar"
-          height={250}
+          height={270}
           width="100%"
           loading={loading}
         />
       </div>
+      {/* ----------- LINE CHART ----------- */}
       <div className="chart-wrapper w-full p-0 m-0 min-w-[320]">
         <GenericChart
           options={lineOptions}
           series={lineSeries}
           type="line"
-          height={250}
+          height={220}
           width="100%"
           loading={loading}
         />
@@ -89,5 +93,3 @@ export const HeartRate: React.FC<HeartRateProps> = ({
     </div>
   );
 };
-
-export default HeartRate;
