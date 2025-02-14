@@ -17,3 +17,28 @@ export const generateLast7DaysCategories = (referenceDate: string): string[] => 
     return `${day}.${month}`;
   });
 };
+
+/**
+ * Formats a date string from "YYYY-MM-DD" format to "DD Month YYYY" format.
+ *
+ * @param dateStr - The date string in "YYYY-MM-DD" format (e.g., "2025-04-13").
+ * @returns The formatted date string (e.g., "13 April 2025").
+ */
+export function formatDate(dateStr: string): string {
+  // Split the date string into its components
+  const [year, month, day] = dateStr.split('-');
+
+  // Array of month names for conversion, zero-indexed (i.e., January is at index 0)
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+
+  // Convert month to a zero-indexed number and parse day as integer
+  const monthIndex = parseInt(month, 10) - 1;
+  const dayNumber = parseInt(day, 10);
+
+  // Return the formatted date string
+  return `${dayNumber} ${monthNames[monthIndex]} ${year}`;
+}
+

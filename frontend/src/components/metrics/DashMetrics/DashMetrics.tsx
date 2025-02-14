@@ -7,13 +7,15 @@ import { HeartRate } from "@/components/metrics/DashMetrics/HeartRate/HeartRate"
 import { BodyBattery } from "@/components/metrics/DashMetrics/BodyBattery/BodyBattery";
 import { Stress } from "@/components/metrics/DashMetrics/Stress/Stress";
 import { Sleep } from "@/components/metrics/DashMetrics/Sleep/Sleep";
-import { IntensityMinutes } from "@/components/metrics/DashMetrics/IntensityMiniutes/IntensityMinutes";
+import { Activities } from "@/components/metrics/DashMetrics/Activities/Activities.tsx";
 import { FaHeartPulse } from "react-icons/fa6";
 import { RiBattery2ChargeFill } from "react-icons/ri";
 import { PiMoonStarsFill } from "react-icons/pi";
 import { BiHealth } from "react-icons/bi";
-import { PiClockCountdownFill } from "react-icons/pi";
+import { FaPersonRunning } from "react-icons/fa6"
+import { BiSolidCalendarPlus } from "react-icons/bi";
 import { generateLast7DaysCategories } from "@/utils/dateUtils";
+import { Events } from "@/components/metrics/DashMetrics/Events/Events.tsx";
 
 /**
  * Props for the DashMetrics component.
@@ -97,8 +99,12 @@ export const DashMetrics: React.FC<DashMetricsProps> = ({
           <Stress loading={loading} referenceDate={referenceDate} categories={categories} />
         </Card>
 
-        <Card title="Intensity Minutes" icon={<PiClockCountdownFill size={32} color="#3C50E0" />}>
-          <IntensityMinutes />
+        <Card title="Activities" icon={<FaPersonRunning  size={32} color="#ff9466" />}>
+          <Activities />
+        </Card>
+
+        <Card title="Upcoming Events" icon={<BiSolidCalendarPlus size={32} color="#3C50E0" />}>
+          <Events />
         </Card>
       </div>
     </div>
