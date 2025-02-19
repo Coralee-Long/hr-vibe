@@ -6,7 +6,7 @@ import { SuccessNotification } from "@/common/SuccessNotification.tsx";
 import { useState } from "react";
 
 export const Login = () => {
-  const { loginAsGuest } = useAuth(); // Use AuthContext for guest login
+  const { loginAsGuest } = useAuth();
   const navigate = useNavigate();
   const [notificationVisible, setNotificationVisible] =
     useState<boolean>(false);
@@ -46,7 +46,6 @@ export const Login = () => {
     setNotificationType("guest");
     setNotificationVisible(true);
     if (!debugNoRedirect) {
-      // Delay the redirect slightly so the user can see the notification.
       setTimeout(() => {
         navigate("/dashboard");
       }, 1000);

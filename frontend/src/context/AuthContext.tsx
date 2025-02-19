@@ -1,3 +1,4 @@
+// AuthContext.tsx
 import {
   createContext,
   useContext,
@@ -5,22 +6,25 @@ import {
   useState,
   useCallback,
 } from "react";
-import { UserType } from "@/types/UserType.ts";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import useLocalStorage from "@/hooks/useLocalStorage";
+import { UserType } from "@/types/UserType.ts";
 
-// Define the authentication state type
+// Define the authentication context type.
 type AuthContextType = {
   user: UserType | null;
   isAuthLoading: boolean;
+  loginAsAdmin: () => void;
   loginAsGuest: () => Promise<void>;
   logout: () => Promise<void>;
+  checkAuth: () => Promise<void>;
 };
 
-// Create the AuthContext
+// Create the AuthContext.
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Custom hook for accessing AuthContext
+// Custom hook to access the AuthContext.
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
@@ -29,7 +33,7 @@ export const useAuth = () => {
   return context;
 };
 
-// Helper function to format user data with fallbacks
+// Helper function to format raw user data from the backend.
 const formatUserData = (
   data: any,
   defaultRole: "ADMIN" | "GUEST"
@@ -42,58 +46,70 @@ const formatUserData = (
   role: data.role ?? defaultRole,
 });
 
-// Compute backend URL from the current location (update this as needed)
+// Compute backend URL based on the current environment.
 const getBackendUrl = () => {
   return window.location.host === "localhost:5173"
     ? "http://localhost:8080"
     : window.location.origin;
 };
 
-// AuthProvider component to wrap around the app
+// AuthProvider component that wraps your application.
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<UserType | null>(null);
+  // Persist the user state using the custom useLocalStorage hook.
+  const [user, setUser] = useLocalStorage<UserType | null>("user", null);
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
   const navigate = useNavigate();
   const backendUrl = getBackendUrl();
 
   /**
-   * Fetches authenticated user details from the backend.
-   * If the admin endpoint fails (guest user), try the guest endpoint.
+   * checkAuth
+   * -----------
+   * Attempts to authenticate the user via the admin endpoint.
+   * If a user is already stored in localStorage and has a "GUEST" role,
+   * we assume the guest session is valid and skip the admin check.
+   * Otherwise, we attempt to call /auth/admin.
+   * If the admin endpoint returns a 401, we log a warning and clear the user state.
    */
   const checkAuth = useCallback(async () => {
+    // If we already have a guest user stored, skip admin reauthentication.
+    if (user && user.role === "GUEST") {
+      setIsAuthLoading(false);
+      return;
+    }
     try {
-      // Try the admin (OAuth2) endpoint first
-      const response = await axios.get(`${backendUrl}/auth/admin`, {
-        withCredentials: true,
-      });
-      console.log("Admin authentication successful:", response.data);
+      const response = await axios.get(`${backendUrl}/auth/admin`);
       setUser(formatUserData(response.data, "ADMIN"));
-    } catch (adminError) {
-      console.warn("Admin check failed, trying guest endpoint...", adminError);
-      try {
-        const guestResponse = await axios.get(`${backendUrl}/auth/guest`, {
-          withCredentials: true,
-        });
-        console.log("Guest authentication successful:", guestResponse.data);
-        setUser(formatUserData(guestResponse.data, "GUEST"));
-      } catch (guestError) {
-        console.warn("Guest check failed:", guestError);
-        setUser(null);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        console.warn("No active admin session.");
+      } else {
+        console.error("Admin authentication failed:", error);
       }
+      setUser(null);
     } finally {
       setIsAuthLoading(false);
     }
-  }, [backendUrl]);
+  }, [backendUrl, setUser, user]);
 
   /**
-   * Logs in as a guest user and sets the guest profile.
+   * loginAsAdmin
+   * -------------
+   * Initiates the admin login via OAuth2 by redirecting the browser to the GitHub OAuth endpoint.
+   * The backend will handle the OAuth flow and, upon successful login, create a session.
+   */
+  const loginAsAdmin = () => {
+    // Redirect to the backend OAuth2 endpoint.
+    window.location.href = `${backendUrl}/oauth2/authorization/github`;
+  };
+
+  /**
+   * loginAsGuest
+   * -------------
+   * Explicitly logs in the user as a guest by calling the guest endpoint.
    */
   const loginAsGuest = async () => {
     try {
-      const response = await axios.get(`${backendUrl}/auth/guest`, {
-        withCredentials: true,
-      });
-      console.log("Guest login response:", response.data);
+      const response = await axios.get(`${backendUrl}/auth/guest`);
       setUser(formatUserData(response.data, "GUEST"));
     } catch (error) {
       console.error("Failed to log in as guest:", error);
@@ -101,16 +117,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   /**
-   * Logs out the user, clears session data, and redirects to homepage.
+   * logout
+   * -------
+   * Logs out the user by calling the backend logout endpoint.
+   * Clears the user state and navigates back to the home page.
    */
   const logout = async () => {
     try {
-      await axios.post(
-        `${backendUrl}/auth/logout`,
-        {},
-        { withCredentials: true }
-      );
-      console.log("Logout successful");
+      await axios.post(`${backendUrl}/auth/logout`, {});
       setUser(null);
       navigate("/");
     } catch (error) {
@@ -118,13 +132,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Check authentication on component mount
+  // On component mount, attempt to authenticate (only for admin).
+  // If a guest is already logged in (stored in localStorage), checkAuth skips the admin call.
   useEffect(() => {
-    checkAuth();
+    const verifyAuth = async () => {
+      try {
+        await checkAuth();
+      } catch (error) {
+        console.error("Error during authentication check:", error);
+      }
+    };
+    void verifyAuth();
   }, [checkAuth]);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthLoading, loginAsGuest, logout }}>
+    <AuthContext.Provider
+      value={{ user, isAuthLoading, loginAsAdmin, loginAsGuest, logout, checkAuth }}
+    >
       {children}
     </AuthContext.Provider>
   );
