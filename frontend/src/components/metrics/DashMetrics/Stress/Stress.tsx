@@ -56,8 +56,6 @@ export const Stress: React.FC<StressChartProps> = ({
   // Generate chart options using the centralized StressChartConfig.
   const options = StressChartConfig("Stress Averages", categories, colors);
 
-  console.log(options);
-
   return (
     <div className="chart-wrapper w-full p-0 m-0 min-w-[320]">
       <GenericChart

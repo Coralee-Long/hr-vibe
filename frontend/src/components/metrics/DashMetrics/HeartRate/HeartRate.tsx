@@ -69,7 +69,7 @@ export const HeartRate: React.FC<HeartRateProps> = ({
   return (
     <div className="charts-container">
       {/* ----------- RADIAL CHART ----------- */}
-      <div className="chart-wrapper w-full pb-12 m-0 min-w-[320]">
+      <div className="chart-wrapper w-full pb-12 m-0 min-w-[320px]">
         <GenericChart
           options={radialOptions}
           series={radialSeries}
@@ -80,7 +80,7 @@ export const HeartRate: React.FC<HeartRateProps> = ({
         />
       </div>
       {/* ----------- LINE CHART ----------- */}
-      <div className="chart-wrapper w-full p-0 m-0 min-w-[320]">
+      <div className="chart-wrapper w-full p-0 m-0 min-w-[400]">
         <GenericChart
           options={lineOptions}
           series={lineSeries}

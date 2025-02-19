@@ -60,7 +60,7 @@ export const BodyBattery: React.FC<BodyBatteryProps> = ({
   const options = BodyBatteryChartConfig("Body Battery", categories, colors, bbMinData, bbMaxData);
 
   return (
-    <div className="chart-wrapper w-full p-0 m-0 min-w-[320]">
+    <div className="chart-wrapper w-full p-0 m-0 min-w-[320px]">
       <GenericChart
         options={options}
         series={series}

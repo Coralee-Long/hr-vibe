@@ -100,10 +100,10 @@ export const DashMetrics: React.FC<DashMetricsProps> = ({
         </Card>
 
         <Card title="Activities" icon={<FaPersonRunning  size={32} color="#ff9466" />}>
-          <Activities />
+          <Activities loading={loading} referenceDate={referenceDate} />
         </Card>
 
-        <Card title="Upcoming Events" icon={<BiSolidCalendarPlus size={32} color="#3C50E0" />}>
+        <Card className="overflow-scroll" title="Upcoming Events" icon={<BiSolidCalendarPlus size={32} color="#3C50E0" />}>
           <Events />
         </Card>
       </div>
