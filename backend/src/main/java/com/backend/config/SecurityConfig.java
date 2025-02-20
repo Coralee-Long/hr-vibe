@@ -25,23 +25,14 @@ public class SecurityConfig {
 
    @Bean
    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-      // Create a custom CookieCsrfTokenRepository.
-      CookieCsrfTokenRepository csrfRepo = CookieCsrfTokenRepository.withHttpOnlyFalse();
-      // NOSONAR: The HttpOnly flag is intentionally set to false to allow client-side JavaScript access to the CSRF token.
-      // This is safe because the application enforces strict XSS mitigations (e.g. CSP, input validation) and uses secure practices.
-      // You could further configure this repository (e.g., setting the cookie as Secure in production) if needed:
-      // csrfRepo.setCookieSecure(true);
-
+      // Temporarily disable CSRF for testing
       http
           .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-          .csrf(csrf -> csrf
-                    .csrfTokenRepository(csrfRepo)
-                    .ignoringRequestMatchers("/auth/logout") // Optionally bypass CSRF for logout
-               )
+          .csrf(csrf -> csrf.disable())
           .authorizeHttpRequests(auth -> auth
                                      .requestMatchers("/auth/guest").permitAll()
                                      .requestMatchers("/auth/admin").authenticated()
-                                     // Allow read (GET) requests for lifestyle factors to everyone.
+                                     // Allow GET requests for lifestyle factors to everyone.
                                      .requestMatchers(HttpMethod.GET, "/lifestyle/**").permitAll()
                                      // Restrict POST/PUT/DELETE requests for lifestyle factors to admin only.
                                      .requestMatchers(HttpMethod.POST, "/lifestyle/**").hasRole("ADMIN")
