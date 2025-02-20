@@ -25,16 +25,14 @@ public class SecurityConfig {
 
    @Bean
    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-      // Temporarily disable CSRF for testing
       http
           .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-          .csrf(csrf -> csrf.disable())
+          // Enable CSRF protection using a CookieCsrfTokenRepository
+          .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
           .authorizeHttpRequests(auth -> auth
                                      .requestMatchers("/auth/guest").permitAll()
                                      .requestMatchers("/auth/admin").authenticated()
-                                     // Allow GET requests for lifestyle factors to everyone.
                                      .requestMatchers(HttpMethod.GET, "/lifestyle/**").permitAll()
-                                     // Restrict POST/PUT/DELETE requests for lifestyle factors to admin only.
                                      .requestMatchers(HttpMethod.POST, "/lifestyle/**").hasRole("ADMIN")
                                      .requestMatchers(HttpMethod.PUT, "/lifestyle/**").hasRole("ADMIN")
                                      .requestMatchers(HttpMethod.DELETE, "/lifestyle/**").hasRole("ADMIN")
@@ -47,6 +45,7 @@ public class SecurityConfig {
 
       return http.build();
    }
+
 
    @Bean
    public CorsConfigurationSource corsConfigurationSource() {

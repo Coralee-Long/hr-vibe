@@ -11,10 +11,8 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Repository
 public class GarminSQLiteRepo {
@@ -22,7 +20,7 @@ public class GarminSQLiteRepo {
    private static final Logger logger = LoggerFactory.getLogger(GarminSQLiteRepo.class);
    private final GarminDatabaseConfig garminDbConfig;
 
-   public GarminSQLiteRepo(GarminDatabaseConfig garminDbConfig) {
+   public GarminSQLiteRepo (GarminDatabaseConfig garminDbConfig) {
       this.garminDbConfig = garminDbConfig;
    }
 
@@ -30,7 +28,7 @@ public class GarminSQLiteRepo {
     * Retrieves all table names from the given SQLite database.
     * Logs a warning if the database is empty.
     */
-   public List<String> getAllTableNames(String databaseName) {
+   public List<String> getAllTableNames (String databaseName) {
       List<String> tables = new ArrayList<>();
       try (Connection connection = garminDbConfig.getConnection(databaseName);
            Statement stmt = connection.createStatement();
@@ -41,7 +39,8 @@ public class GarminSQLiteRepo {
             tables.add(table);
             logger.info("✅ Found table: '{}'", table);
          }
-      } catch (SQLException e) {
+      }
+      catch (SQLException e) {
          throw new GarminDatabaseException("❌ Failed to retrieve table names from database: " + databaseName, e);
       }
 
@@ -56,7 +55,15 @@ public class GarminSQLiteRepo {
    public List<Map<String, Object>> fetchTableData(String databaseName, ValidTable validTable) {
       List<Map<String, Object>> result = new ArrayList<>();
       String tableName = validTable.getTableName();
-      // Using enum guarantees that tableName is valid.
+
+      // Extra validation: ensure the table name is one of the allowed values.
+      List<String> allowedTables = Arrays.stream(ValidTable.values())
+          .map(ValidTable::getTableName)
+          .toList();
+      if (!allowedTables.contains(tableName)) {
+         throw new IllegalArgumentException("Invalid table name: " + tableName);
+      }
+
       String query = "SELECT * FROM " + tableName;
 
       try (Connection connection = garminDbConfig.getConnection(databaseName);
@@ -64,7 +71,6 @@ public class GarminSQLiteRepo {
            ResultSet rs = stmt.executeQuery(query)) {
 
          int columnCount = rs.getMetaData().getColumnCount();
-
          while (rs.next()) {
             Map<String, Object> row = new HashMap<>();
             for (int i = 1; i <= columnCount; i++) {
@@ -72,7 +78,6 @@ public class GarminSQLiteRepo {
             }
             result.add(row);
          }
-
       } catch (SQLException e) {
          throw new GarminDatabaseException("❌ Error querying table '" + tableName + "' in database '" + databaseName + "': " + e.getMessage(), e);
       }
