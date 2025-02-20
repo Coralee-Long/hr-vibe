@@ -16,12 +16,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 
-/**
- * Security configuration for authentication, authorization, CORS, and session management.
- */
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
+
+   // Define a constant for the lifestyle URL pattern
+   private static final String LIFESTYLE_URL_PATTERN = "/lifestyle/**";
 
    @Bean
    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -32,10 +32,10 @@ public class SecurityConfig {
           .authorizeHttpRequests(auth -> auth
                                      .requestMatchers("/auth/guest").permitAll()
                                      .requestMatchers("/auth/admin").authenticated()
-                                     .requestMatchers(HttpMethod.GET, "/lifestyle/**").permitAll()
-                                     .requestMatchers(HttpMethod.POST, "/lifestyle/**").hasRole("ADMIN")
-                                     .requestMatchers(HttpMethod.PUT, "/lifestyle/**").hasRole("ADMIN")
-                                     .requestMatchers(HttpMethod.DELETE, "/lifestyle/**").hasRole("ADMIN")
+                                     .requestMatchers(HttpMethod.GET, LIFESTYLE_URL_PATTERN).permitAll()
+                                     .requestMatchers(HttpMethod.POST, LIFESTYLE_URL_PATTERN).hasRole("ADMIN")
+                                     .requestMatchers(HttpMethod.PUT, LIFESTYLE_URL_PATTERN).hasRole("ADMIN")
+                                     .requestMatchers(HttpMethod.DELETE, LIFESTYLE_URL_PATTERN).hasRole("ADMIN")
                                      .anyRequest().permitAll()
                                 )
           .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
@@ -45,7 +45,6 @@ public class SecurityConfig {
 
       return http.build();
    }
-
 
    @Bean
    public CorsConfigurationSource corsConfigurationSource() {
