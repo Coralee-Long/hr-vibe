@@ -1,5 +1,6 @@
 package com.backend.services;
 
+import com.backend.enums.ValidTable;
 import com.backend.exceptions.GarminDatabaseException;
 import com.backend.exceptions.GarminExportException;
 import com.backend.repos.SQL.GarminSQLiteRepo;
@@ -23,25 +24,24 @@ import static org.mockito.Mockito.*;
 
 /**
  * ✅ GarminDataExportServiceTest - Unit tests for GarminDataExportService.
-
+ *
  * **Table of Contents:**
-
+ *
  * 1️⃣ **getAllTableNames(String databaseName)**
  *    - ✅ Returns a valid list of table names when the database contains tables.
  *    - ❌ Throws `GarminDatabaseException` when database query fails.
-
+ *
  * 2️⃣ **saveTableAsJson(String databaseName, String tableName)**
  *    - ✅ Successfully writes table data to a JSON file.
  *    - ❌ Logs a warning and skips file creation when table is empty.
  *    - ❌ Throws `GarminDatabaseException` if fetching data fails.
  *    - ❌ Throws `GarminExportException` if file writing fails.
-
+ *
  * 3️⃣ **saveAllTablesAsJson(String databaseName)**
  *    - ✅ Successfully exports multiple tables.
  *    - ❌ Logs a warning and returns an empty list when there are no tables.
  *    - ❌ Skips problematic tables and logs errors without interrupting execution.
  */
-
 class GarminDataExportServiceTest {
 
    @Mock
@@ -61,7 +61,8 @@ class GarminDataExportServiceTest {
       MockitoAnnotations.openMocks(this);
 
       // Ensure ObjectMapper mock returns a non-null writer
-      when(objectMapper.writerWithDefaultPrettyPrinter()).thenReturn(new ObjectMapper().writerWithDefaultPrettyPrinter());
+      when(objectMapper.writerWithDefaultPrettyPrinter())
+          .thenReturn(new ObjectMapper().writerWithDefaultPrettyPrinter());
    }
 
    /**
@@ -71,7 +72,7 @@ class GarminDataExportServiceTest {
    void givenDatabaseWithTables_whenGetAllTableNames_thenReturnsList() {
       // GIVEN mock table names
       String databaseName = "mockDB";
-      List<String> mockTables = List.of("daily_summary", "weekly_summary", "monthly_summary");
+      List<String> mockTables = List.of("days_summary", "weeks_summary", "months_summary");
 
       when(garminSQLiteRepo.getAllTableNames(databaseName)).thenReturn(mockTables);
 
@@ -81,7 +82,7 @@ class GarminDataExportServiceTest {
       // THEN verify the correct tables are returned
       assertNotNull(result);
       assertEquals(3, result.size());
-      assertEquals("daily_summary", result.get(0));
+      assertEquals("days_summary", result.get(0));
 
       verify(garminSQLiteRepo).getAllTableNames(databaseName);
    }
@@ -93,7 +94,8 @@ class GarminDataExportServiceTest {
    void givenDatabaseError_whenGetAllTableNames_thenThrowsGarminDatabaseException() {
       String databaseName = "errorDB";
 
-      when(garminSQLiteRepo.getAllTableNames(databaseName)).thenThrow(new RuntimeException("Mock database failure"));
+      when(garminSQLiteRepo.getAllTableNames(databaseName))
+          .thenThrow(new RuntimeException("Mock database failure"));
 
       Exception exception = assertThrows(GarminDatabaseException.class,
                                          () -> garminDataExportService.getAllTableNames(databaseName));
@@ -108,19 +110,20 @@ class GarminDataExportServiceTest {
    void givenValidTableData_whenSaveTableAsJson_thenCreatesJsonFile() throws IOException {
       // GIVEN mock SQLite data
       String databaseName = "testDB";
-      String tableName = "daily_summary";
+      String tableName = "DAYS_SUMMARY"; // Updated to match enum constant
       List<Map<String, Object>> mockData = List.of(
           Map.of("day", "2025-01-30", "calories", 2500),
           Map.of("day", "2025-01-31", "calories", 2600)
                                                   );
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockData);
+      when(garminSQLiteRepo.fetchTableData(databaseName, ValidTable.valueOf(tableName)))
+          .thenReturn(mockData);
 
       // WHEN exporting data to JSON
       garminDataExportService.saveTableAsJson(databaseName, tableName);
 
       // THEN verify the file was created correctly
-      File jsonFile = new File(System.getProperty("user.dir") + "/backend/data/raw_garmin_data/testDB/daily_summary.json");
+      File jsonFile = new File(System.getProperty("user.dir") + "/backend/data/raw_garmin_data/testDB/days_summary.json");
 
       // Ensure file exists before reading
       assertTrue(jsonFile.exists(), "JSON file was not created");
@@ -133,9 +136,8 @@ class GarminDataExportServiceTest {
       assertFalse(savedData.isEmpty(), "JSON file was created but contains no data");
       assertEquals(2, savedData.size());
 
-      verify(garminSQLiteRepo).fetchTableData(databaseName, tableName);
+      verify(garminSQLiteRepo).fetchTableData(databaseName, ValidTable.valueOf(tableName));
    }
-
 
    /**
     * ❌ Test `saveTableAsJson()` when table is empty.
@@ -144,17 +146,20 @@ class GarminDataExportServiceTest {
    void givenEmptyTable_whenSaveTableAsJson_thenLogsWarningAndSkipsFileCreation() {
       // GIVEN empty table data
       String databaseName = "testDB";
-      String tableName = "empty_table";
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(List.of());
+      // Updated to use a valid enum constant (using SUMMARY for simulation)
+      String tableName = "SUMMARY";
+
+      when(garminSQLiteRepo.fetchTableData(databaseName, ValidTable.valueOf(tableName)))
+          .thenReturn(List.of());
 
       // WHEN exporting data
       garminDataExportService.saveTableAsJson(databaseName, tableName);
 
       // THEN ensure no file is created
-      File jsonFile = new File(System.getProperty("user.dir") + "/backend/data/raw_garmin_data/testDB/empty_table.json");
+      File jsonFile = new File(System.getProperty("user.dir") + "/backend/data/raw_garmin_data/testDB/summary.json");
       assertFalse(jsonFile.exists());
 
-      verify(garminSQLiteRepo).fetchTableData(databaseName, tableName);
+      verify(garminSQLiteRepo).fetchTableData(databaseName, ValidTable.valueOf(tableName));
    }
 
    /**
@@ -163,15 +168,18 @@ class GarminDataExportServiceTest {
    @Test
    void givenDatabaseError_whenSaveTableAsJson_thenThrowsGarminDatabaseException() {
       String databaseName = "testDB";
-      String tableName = "error_table";
+      // Updated to use a valid enum constant (using SUMMARY for simulation)
+      String tableName = "SUMMARY";
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName))
+      when(garminSQLiteRepo.fetchTableData(databaseName, ValidTable.valueOf(tableName)))
           .thenThrow(new RuntimeException("Mock database fetch failure"));
 
       Exception exception = assertThrows(GarminDatabaseException.class,
                                          () -> garminDataExportService.saveTableAsJson(databaseName, tableName));
 
       assertTrue(exception.getMessage().contains("Failed to retrieve data for table"));
+
+      verify(garminSQLiteRepo).fetchTableData(databaseName, ValidTable.valueOf(tableName));
    }
 
    /**
@@ -180,12 +188,13 @@ class GarminDataExportServiceTest {
    @Test
    void givenIOException_whenSaveTableAsJson_thenThrowsGarminExportException() throws IOException {
       String databaseName = "testDB";
-      String tableName = "daily_summary";
+      String tableName = "DAYS_SUMMARY"; // Updated to match enum constant
       List<Map<String, Object>> mockData = List.of(Map.of("day", "2025-01-30", "calories", 2500));
 
       System.out.println("Mocking IOException on objectMapper...");
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockData);
+      when(garminSQLiteRepo.fetchTableData(databaseName, ValidTable.valueOf(tableName)))
+          .thenReturn(mockData);
 
       // ✅ Properly mock ObjectWriter
       ObjectWriter mockWriter = mock(ObjectWriter.class);
@@ -200,7 +209,7 @@ class GarminDataExportServiceTest {
 
       assertTrue(exception.getMessage().contains("Error saving table as JSON"));
 
-      verify(garminSQLiteRepo).fetchTableData(databaseName, tableName);
+      verify(garminSQLiteRepo).fetchTableData(databaseName, ValidTable.valueOf(tableName));
       verify(objectMapper).writerWithDefaultPrettyPrinter();
       verify(mockWriter).writeValue(any(File.class), any());
    }
@@ -211,11 +220,12 @@ class GarminDataExportServiceTest {
    @Test
    void givenMultipleTables_whenSaveAllTablesAsJson_thenExportsEachTable() {
       String databaseName = "testDB";
-      List<String> mockTables = List.of("daily_summary", "weekly_summary");
+      // Updated list to use valid enum constant names.
+      List<String> mockTables = List.of("DAYS_SUMMARY", "WEEKS_SUMMARY");
       when(garminSQLiteRepo.getAllTableNames(databaseName)).thenReturn(mockTables);
 
       for (String table : mockTables) {
-         when(garminSQLiteRepo.fetchTableData(databaseName, table))
+         when(garminSQLiteRepo.fetchTableData(databaseName, ValidTable.valueOf(table)))
              .thenReturn(List.of(Map.of("day", "2025-01-30", "metric", 100)));
       }
 
@@ -225,7 +235,8 @@ class GarminDataExportServiceTest {
       assertEquals(2, result.size());
 
       for (String table : mockTables) {
-         File jsonFile = new File(System.getProperty("user.dir") + "/backend/data/raw_garmin_data/testDB/" + table + ".json");
+         File jsonFile = new File(System.getProperty("user.dir") + "/backend/data/raw_garmin_data/testDB/" +
+                                  ValidTable.valueOf(table).getTableName() + ".json");
          assertTrue(jsonFile.exists());
       }
 

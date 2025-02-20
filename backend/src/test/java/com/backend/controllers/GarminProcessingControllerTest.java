@@ -1,5 +1,6 @@
 package com.backend.controllers;
 
+import com.backend.enums.ValidTable;
 import com.backend.services.GarminProcessingService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -19,25 +20,25 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 /**
  * 📌 Test Summary for GarminProcessingController Integration Tests
-
+ *
  * Endpoints:
  * 1. POST /garmin/process/days
  *    - ✅ givenValidParameters_whenProcessCurrentDaySummary_thenReturnsSuccessResponse
-
+ *
  * 2. POST /garmin/process/weeks
  *    - ✅ givenValidParameters_whenProcessWeeklySummary_thenReturnsSuccessResponse
-
+ *
  * 3. POST /garmin/process/months
  *    - ✅ givenValidParameters_whenProcessMonthlySummary_thenReturnsSuccessResponse
-
+ *
  * 4. POST /garmin/process/years
  *    - ✅ givenValidParameters_whenProcessYearlySummary_thenReturnsSuccessResponse
-
+ *
  * 5. POST /garmin/process/recent
  *    - ✅ givenValidDataAndReferenceDate_whenProcessAndSaveRecentDailySummaries_thenSavesSuccessfully
  *    - ❌ givenNoData_whenProcessAndSaveRecentDailySummaries_thenSkipsSaving
  */
-@ExtendWith (MockitoExtension.class)
+@ExtendWith(MockitoExtension.class)
 class GarminProcessingControllerTest {
    private MockMvc mockMvc;
 
@@ -59,10 +60,10 @@ class GarminProcessingControllerTest {
    @Test
    void givenValidParameters_whenProcessCurrentDaySummary_thenReturnsSuccessResponse() throws Exception {
       String dbName = "testDB";
-      String tableName = "days_summary";
+      String tableName = "DAYS_SUMMARY"; // Updated to match enum constant
 
       // Assume garminService.processAndSaveCurrentDaySummary runs without error.
-      doNothing().when(garminProcessingService).processAndSaveCurrentDaySummary(dbName, tableName);
+      doNothing().when(garminProcessingService).processAndSaveCurrentDaySummary(dbName, ValidTable.valueOf(tableName));
 
       mockMvc.perform(post("/garmin/process/days")
                           .param("databaseName", dbName)
@@ -74,9 +75,9 @@ class GarminProcessingControllerTest {
    @Test
    void givenValidParameters_whenProcessWeeklySummary_thenReturnsSuccessResponse() throws Exception {
       String dbName = "testDB";
-      String tableName = "weeks_summary";
+      String tableName = "WEEKS_SUMMARY"; // Updated
 
-      doNothing().when(garminProcessingService).processAndSaveWeeklySummary(dbName, tableName);
+      doNothing().when(garminProcessingService).processAndSaveWeeklySummary(dbName, ValidTable.valueOf(tableName));
 
       mockMvc.perform(post("/garmin/process/weeks")
                           .param("databaseName", dbName)
@@ -88,9 +89,9 @@ class GarminProcessingControllerTest {
    @Test
    void givenValidParameters_whenProcessMonthlySummary_thenReturnsSuccessResponse() throws Exception {
       String dbName = "testDB";
-      String tableName = "months_summary";
+      String tableName = "MONTHS_SUMMARY"; // Updated
 
-      doNothing().when(garminProcessingService).processAndSaveMonthlySummary(dbName, tableName);
+      doNothing().when(garminProcessingService).processAndSaveMonthlySummary(dbName, ValidTable.valueOf(tableName));
 
       mockMvc.perform(post("/garmin/process/months")
                           .param("databaseName", dbName)
@@ -102,9 +103,9 @@ class GarminProcessingControllerTest {
    @Test
    void givenValidParameters_whenProcessYearlySummary_thenReturnsSuccessResponse() throws Exception {
       String dbName = "testDB";
-      String tableName = "years_summary";
+      String tableName = "YEARS_SUMMARY"; // Updated
 
-      doNothing().when(garminProcessingService).processAndSaveYearlySummary(dbName, tableName);
+      doNothing().when(garminProcessingService).processAndSaveYearlySummary(dbName, ValidTable.valueOf(tableName));
 
       mockMvc.perform(post("/garmin/process/years")
                           .param("databaseName", dbName)

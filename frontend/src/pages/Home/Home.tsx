@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import LogoIcon from "@/images/logo/hrvibe-logo.png";
-import CountDownTimer from "@/common/CountdownTimer.tsx";
+import { CountDownTimer}  from "@/common/CountdownTimer.tsx";
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ export const Home = () => {
 
           {/* <!-- Countdown timer start --> */}
           <div className="mt-10 flex justify-center">
-            <CountDownTimer />
+            <CountDownTimer finalDate={"2025-21-02"}/>
           </div>
           {/* <!-- Countdown timer start --> */}
 

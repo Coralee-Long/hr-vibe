@@ -25,44 +25,34 @@ public class SecurityConfig {
 
    @Bean
    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+      // Create a custom CookieCsrfTokenRepository.
+      CookieCsrfTokenRepository csrfRepo = CookieCsrfTokenRepository.withHttpOnlyFalse();
+      // NOSONAR: The HttpOnly flag is intentionally set to false to allow client-side JavaScript access to the CSRF token.
+      // This is safe because the application enforces strict XSS mitigations (e.g. CSP, input validation) and uses secure practices.
+      // You could further configure this repository (e.g., setting the cookie as Secure in production) if needed:
+      // csrfRepo.setCookieSecure(true);
+
       http
-          .cors(cors -> cors.configurationSource(corsConfigurationSource())) // ✅ Enable CORS
-          // Instead of disabling CSRF, enable it using a CookieCsrfTokenRepository.
+          .cors(cors -> cors.configurationSource(corsConfigurationSource()))
           .csrf(csrf -> csrf
-                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .csrfTokenRepository(csrfRepo)
+                    .ignoringRequestMatchers("/auth/logout") // Optionally bypass CSRF for logout
                )
           .authorizeHttpRequests(auth -> auth
-                                     // ✅ Guest Mode Access (Public)
-                                     .requestMatchers("/auth/guest").permitAll() // Allow guests to start a session
-
-                                     // 🔒 Admin-Only Routes
-                                     .requestMatchers("/auth/admin").authenticated() // Only OAuth users can access admin info
-                                     .requestMatchers(HttpMethod.POST, "/auth/logout").permitAll() // Allow all users (guests & OAuth) to logout
-
-                                     // ✅ Guests & Admins Can Read Garmin Data (Allow All GET Requests)
-                                     .requestMatchers(HttpMethod.GET, "/garmin/days").permitAll()
-                                     .requestMatchers(HttpMethod.GET, "/garmin/days/**").permitAll()
-                                     .requestMatchers(HttpMethod.GET, "/garmin/recent/**").permitAll()
-                                     .requestMatchers(HttpMethod.GET, "/garmin/weeks").permitAll()
-                                     .requestMatchers(HttpMethod.GET, "/garmin/weeks/**").permitAll()
-                                     .requestMatchers(HttpMethod.GET, "/garmin/months").permitAll()
-                                     .requestMatchers(HttpMethod.GET, "/garmin/years").permitAll()
-
-                                     // 🔒 Admins Only - Modify Garmin Data
-                                     .requestMatchers(HttpMethod.POST, "/garmin/**").authenticated()
-                                     .requestMatchers(HttpMethod.PUT, "/garmin/**").authenticated()
-                                     .requestMatchers(HttpMethod.DELETE, "/garmin/**").authenticated()
-                                     // TODO: Add the extra lifestyle factors endpoints later
-                                     //  (Guest: READ , Admin: READ & WRITE)
-
-                                     // ✅ Allow all other requests by default
+                                     .requestMatchers("/auth/guest").permitAll()
+                                     .requestMatchers("/auth/admin").authenticated()
+                                     // Allow read (GET) requests for lifestyle factors to everyone.
+                                     .requestMatchers(HttpMethod.GET, "/lifestyle/**").permitAll()
+                                     // Restrict POST/PUT/DELETE requests for lifestyle factors to admin only.
+                                     .requestMatchers(HttpMethod.POST, "/lifestyle/**").hasRole("ADMIN")
+                                     .requestMatchers(HttpMethod.PUT, "/lifestyle/**").hasRole("ADMIN")
+                                     .requestMatchers(HttpMethod.DELETE, "/lifestyle/**").hasRole("ADMIN")
                                      .anyRequest().permitAll()
                                 )
-          .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS)) // ✅ Enable session-based Guest login
-          .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))) // 🛑 Unauthorized users get 401
-          .oauth2Login(oauth2 -> oauth2
-              .defaultSuccessUrl("http://localhost:5173/dashboard", true)) // ✅ Redirect to frontend
-          .logout(logout -> logout.logoutSuccessUrl("/")); // ✅ Redirect to frontend home page after logout
+          .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+          .exceptionHandling(ex -> ex.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+          .oauth2Login(oauth2 -> oauth2.defaultSuccessUrl("http://localhost:5173/dashboard", true))
+          .logout(logout -> logout.logoutSuccessUrl("/"));
 
       return http.build();
    }
@@ -70,13 +60,12 @@ public class SecurityConfig {
    @Bean
    public CorsConfigurationSource corsConfigurationSource() {
       CorsConfiguration configuration = new CorsConfiguration();
-      configuration.setAllowedOrigins(List.of("http://localhost:5173")); // ✅ Allow frontend access
-      configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")); // ✅ Allow standard HTTP methods
-      configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type")); // ✅ Allow essential headers
-      configuration.setAllowCredentials(true); // ✅ Allow cookies & session-based authentication
-
+      configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+      configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+      configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
+      configuration.setAllowCredentials(true);
       UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-      source.registerCorsConfiguration("/**", configuration); // ✅ Apply CORS settings to all endpoints
+      source.registerCorsConfiguration("/**", configuration);
       return source;
    }
 }

@@ -1,5 +1,6 @@
 package com.backend.services;
 
+import com.backend.enums.ValidTable;
 import com.backend.exceptions.GarminProcessingException;
 import com.backend.models.CurrentDaySummary;
 import com.backend.models.MonthlySummary;
@@ -106,6 +107,7 @@ class GarminProcessingServiceTest {
    // For monthly summaries, dummyMonth is used solely for stubbing duplicate scenarios.
    private MonthlySummary dummyMonth;
    private YearlySummary dummyYear;
+   // For recent daily summaries, we supply the required arguments.
    private RecentDailySummaries dummyRecent;
 
    // A common sample date for testing.
@@ -136,7 +138,6 @@ class GarminProcessingServiceTest {
       // For duplicate monthly scenario, dummyMonth is used solely for stubbing.
       dummyMonth = new MonthlySummary("monthId", LocalDate.of(2024, 11, 1), null);
       dummyYear = new YearlySummary("yearId", sampleDate.withDayOfMonth(1), null);
-      // For recent daily summaries, we supply the required arguments.
       dummyRecent = new RecentDailySummaries(
           "recentId",
           sampleDate,
@@ -201,13 +202,14 @@ class GarminProcessingServiceTest {
    @Test
    void givenValidData_whenProcessAndSaveSummary_thenSavesSuccessfully() {
       String databaseName = "testDB";
-      String tableName = "daily_summary";
+      // Updated to use the correct enum constant.
+      ValidTable table = ValidTable.DAYS_SUMMARY;
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockSQLiteDataDay);
+      when(garminSQLiteRepo.fetchTableData(databaseName, table)).thenReturn(mockSQLiteDataDay);
       // Simulate no duplicate exists by returning empty for any lookup.
       when(currentDaySummaryRepo.findByDay(any())).thenReturn(Optional.empty());
 
-      garminProcessingService.processAndSaveCurrentDaySummary(databaseName, tableName);
+      garminProcessingService.processAndSaveCurrentDaySummary(databaseName, table);
 
       // Verify that insert() is called for each processed record.
       verify(currentDaySummaryRepo, atLeastOnce()).insert(any(CurrentDaySummary.class));
@@ -221,14 +223,14 @@ class GarminProcessingServiceTest {
    @Test
    void givenNoData_whenProcessAndSaveSummary_thenThrowsException() {
       String databaseName = "testDB";
-      String tableName = "daily_summary";
+      ValidTable table = ValidTable.DAYS_SUMMARY;
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(List.of());
+      when(garminSQLiteRepo.fetchTableData(databaseName, table)).thenReturn(List.of());
 
       GarminProcessingException exception = assertThrows(GarminProcessingException.class, () ->
-          garminProcessingService.processAndSaveCurrentDaySummary(databaseName, tableName));
+          garminProcessingService.processAndSaveCurrentDaySummary(databaseName, table));
 
-      assertEquals("No data found in table: daily_summary", exception.getMessage());
+      assertEquals("No data found in table: days_summary", exception.getMessage());
    }
 
    /**
@@ -238,14 +240,14 @@ class GarminProcessingServiceTest {
    @Test
    void givenInvalidData_whenProcessAndSaveSummary_thenThrowsValidationException() {
       String databaseName = "testDB";
-      String tableName = "daily_summary";
+      ValidTable table = ValidTable.DAYS_SUMMARY;
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockSQLiteDataDay);
+      when(garminSQLiteRepo.fetchTableData(databaseName, table)).thenReturn(mockSQLiteDataDay);
       doThrow(new RuntimeException("Validation failed"))
           .when(validationService).validate(any(CurrentDaySummary.class));
 
       assertThrows(RuntimeException.class, () ->
-          garminProcessingService.processAndSaveCurrentDaySummary(databaseName, tableName));
+          garminProcessingService.processAndSaveCurrentDaySummary(databaseName, table));
    }
 
    /**
@@ -255,12 +257,12 @@ class GarminProcessingServiceTest {
    @Test
    void givenDatabaseException_whenProcessAndSaveSummary_thenThrowsProcessingException() {
       String databaseName = "testDB";
-      String tableName = "daily_summary";
+      ValidTable table = ValidTable.DAYS_SUMMARY;
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenThrow(new RuntimeException("Database error"));
+      when(garminSQLiteRepo.fetchTableData(databaseName, table)).thenThrow(new RuntimeException("Database error"));
 
       assertThrows(GarminProcessingException.class, () ->
-          garminProcessingService.processAndSaveCurrentDaySummary(databaseName, tableName));
+          garminProcessingService.processAndSaveCurrentDaySummary(databaseName, table));
    }
 
    /**
@@ -270,12 +272,12 @@ class GarminProcessingServiceTest {
    @Test
    void givenValidData_whenProcessAndSaveCurrentDaySummary_thenSavesSuccessfully() {
       String databaseName = "testDB";
-      String tableName = "daily_summary";
+      ValidTable table = ValidTable.DAYS_SUMMARY;
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockSQLiteDataDay);
+      when(garminSQLiteRepo.fetchTableData(databaseName, table)).thenReturn(mockSQLiteDataDay);
       when(currentDaySummaryRepo.findByDay(any())).thenReturn(Optional.empty());
 
-      garminProcessingService.processAndSaveCurrentDaySummary(databaseName, tableName);
+      garminProcessingService.processAndSaveCurrentDaySummary(databaseName, table);
 
       // Capture individual insert calls.
       ArgumentCaptor<CurrentDaySummary> captor = ArgumentCaptor.forClass(CurrentDaySummary.class);
@@ -293,14 +295,14 @@ class GarminProcessingServiceTest {
    @Test
    void givenNoData_whenProcessAndSaveCurrentDaySummary_thenThrowsException() {
       String databaseName = "testDB";
-      String tableName = "daily_summary";
+      ValidTable table = ValidTable.DAYS_SUMMARY;
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(List.of());
+      when(garminSQLiteRepo.fetchTableData(databaseName, table)).thenReturn(List.of());
 
       GarminProcessingException exception = assertThrows(GarminProcessingException.class, () ->
-          garminProcessingService.processAndSaveCurrentDaySummary(databaseName, tableName));
+          garminProcessingService.processAndSaveCurrentDaySummary(databaseName, table));
 
-      assertEquals("No data found in table: daily_summary", exception.getMessage());
+      assertEquals("No data found in table: days_summary", exception.getMessage());
    }
 
    // --- WEEKLY SUMMARY TESTS ---
@@ -312,12 +314,12 @@ class GarminProcessingServiceTest {
    @Test
    void givenValidData_whenProcessAndSaveWeeklySummary_thenSavesSuccessfully() {
       String databaseName = "testDB";
-      String tableName = "weekly_summary";
+      ValidTable table = ValidTable.WEEKS_SUMMARY;
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockSQLiteDataWeek);
+      when(garminSQLiteRepo.fetchTableData(databaseName, table)).thenReturn(mockSQLiteDataWeek);
       when(weeklySummaryRepo.findByFirstDay(any())).thenReturn(Optional.empty());
 
-      garminProcessingService.processAndSaveWeeklySummary(databaseName, tableName);
+      garminProcessingService.processAndSaveWeeklySummary(databaseName, table);
 
       ArgumentCaptor<WeeklySummary> captor = ArgumentCaptor.forClass(WeeklySummary.class);
       verify(weeklySummaryRepo, atLeastOnce()).insert(captor.capture());
@@ -337,14 +339,14 @@ class GarminProcessingServiceTest {
    @Test
    void givenNoData_whenProcessAndSaveWeeklySummary_thenThrowsException() {
       String databaseName = "testDB";
-      String tableName = "weekly_summary";
+      ValidTable table = ValidTable.WEEKS_SUMMARY;
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(List.of());
+      when(garminSQLiteRepo.fetchTableData(databaseName, table)).thenReturn(List.of());
 
       GarminProcessingException exception = assertThrows(GarminProcessingException.class, () ->
-          garminProcessingService.processAndSaveWeeklySummary(databaseName, tableName));
+          garminProcessingService.processAndSaveWeeklySummary(databaseName, table));
 
-      assertEquals("No data found in table: weekly_summary", exception.getMessage());
+      assertEquals("No data found in table: weeks_summary", exception.getMessage());
    }
 
    // --- MONTHLY SUMMARY TESTS ---
@@ -356,13 +358,13 @@ class GarminProcessingServiceTest {
    @Test
    void givenValidData_whenProcessAndSaveMonthlySummary_thenSavesSuccessfully() {
       String databaseName = "testDB";
-      String tableName = "monthly_summary";
+      ValidTable table = ValidTable.MONTHS_SUMMARY;
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockSQLiteDataMonth);
+      when(garminSQLiteRepo.fetchTableData(databaseName, table)).thenReturn(mockSQLiteDataMonth);
       // Simulate no duplicate exists.
       when(monthlySummaryRepo.findByFirstDay(any())).thenReturn(Optional.empty());
 
-      garminProcessingService.processAndSaveMonthlySummary(databaseName, tableName);
+      garminProcessingService.processAndSaveMonthlySummary(databaseName, table);
 
       verify(monthlySummaryRepo, atLeastOnce()).insert(any(MonthlySummary.class));
       verify(validationService, atLeastOnce()).validate(any(MonthlySummary.class));
@@ -375,13 +377,13 @@ class GarminProcessingServiceTest {
    @Test
    void givenDuplicateMonthlyData_whenProcessAndSaveMonthlySummary_thenUpdatesExisting() {
       String databaseName = "testDB";
-      String tableName = "monthly_summary";
+      ValidTable table = ValidTable.MONTHS_SUMMARY;
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockSQLiteDataMonth);
+      when(garminSQLiteRepo.fetchTableData(databaseName, table)).thenReturn(mockSQLiteDataMonth);
       // Simulate duplicate: for any lookup, return an existing record.
       when(monthlySummaryRepo.findByFirstDay(any())).thenReturn(Optional.of(dummyMonth));
 
-      garminProcessingService.processAndSaveMonthlySummary(databaseName, tableName);
+      garminProcessingService.processAndSaveMonthlySummary(databaseName, table);
 
       verify(monthlySummaryRepo, atLeastOnce()).save(any(MonthlySummary.class));
       verify(monthlySummaryRepo, never()).insert(any(MonthlySummary.class));
@@ -394,14 +396,14 @@ class GarminProcessingServiceTest {
    @Test
    void givenNoData_whenProcessAndSaveMonthlySummary_thenThrowsException() {
       String databaseName = "testDB";
-      String tableName = "monthly_summary";
+      ValidTable table = ValidTable.MONTHS_SUMMARY;
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(List.of());
+      when(garminSQLiteRepo.fetchTableData(databaseName, table)).thenReturn(List.of());
 
       GarminProcessingException exception = assertThrows(GarminProcessingException.class, () ->
-          garminProcessingService.processAndSaveMonthlySummary(databaseName, tableName));
+          garminProcessingService.processAndSaveMonthlySummary(databaseName, table));
 
-      assertEquals("No data found in table: monthly_summary", exception.getMessage());
+      assertEquals("No data found in table: months_summary", exception.getMessage());
    }
 
    // --- YEARLY SUMMARY TESTS ---
@@ -413,12 +415,12 @@ class GarminProcessingServiceTest {
    @Test
    void givenValidData_whenProcessAndSaveYearlySummary_thenSavesSuccessfully() {
       String databaseName = "testDB";
-      String tableName = "yearly_summary";
+      ValidTable table = ValidTable.YEARS_SUMMARY;
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(mockSQLiteDataYear);
+      when(garminSQLiteRepo.fetchTableData(databaseName, table)).thenReturn(mockSQLiteDataYear);
       when(yearlySummaryRepo.findByFirstDay(any())).thenReturn(Optional.empty());
 
-      garminProcessingService.processAndSaveYearlySummary(databaseName, tableName);
+      garminProcessingService.processAndSaveYearlySummary(databaseName, table);
 
       ArgumentCaptor<YearlySummary> captor = ArgumentCaptor.forClass(YearlySummary.class);
       verify(yearlySummaryRepo, atLeastOnce()).insert(captor.capture());
@@ -438,14 +440,14 @@ class GarminProcessingServiceTest {
    @Test
    void givenNoData_whenProcessAndSaveYearlySummary_thenThrowsException() {
       String databaseName = "testDB";
-      String tableName = "yearly_summary";
+      ValidTable table = ValidTable.YEARS_SUMMARY;
 
-      when(garminSQLiteRepo.fetchTableData(databaseName, tableName)).thenReturn(List.of());
+      when(garminSQLiteRepo.fetchTableData(databaseName, table)).thenReturn(List.of());
 
       GarminProcessingException exception = assertThrows(GarminProcessingException.class, () ->
-          garminProcessingService.processAndSaveYearlySummary(databaseName, tableName));
+          garminProcessingService.processAndSaveYearlySummary(databaseName, table));
 
-      assertEquals("No data found in table: yearly_summary", exception.getMessage());
+      assertEquals("No data found in table: years_summary", exception.getMessage());
    }
 
    // --- RECENT DAILY SUMMARIES TESTS ---

@@ -48,3 +48,19 @@ export default tseslint.config({
   },
 });
 ```
+
+#### TODOs:
+- [ ] Make Dark Mode default
+- [ ] Set up frontend data fetching
+- [ ] Create reusable Chart template with all props available
+- [ ] Complete Dashboard on Front
+
+**Insights Page**
+- [ ] Design Structure of Lifestyle Factors data
+- [ ] Set up backend for Lifestyle Factors (Controller, Service, Repo)
+- [ ] Fetch Lifestyle Factors data from BE
+- [ ] Set up form in frontend to add/edit/delete data
+- [ ] Set up how to compare data charts in insights pages
+
+**Bonus**
+- [ ] Crete the other dashboard pages if time
