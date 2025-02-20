@@ -1,5 +1,6 @@
 package com.backend.services;
 
+import com.backend.enums.ValidTable;
 import com.backend.exceptions.GarminDatabaseException;
 import com.backend.exceptions.GarminExportException;
 import com.backend.repos.SQL.GarminSQLiteRepo;
@@ -52,7 +53,7 @@ public class GarminDataExportService {
       List<Map<String, Object>> tableData;
 
       try {
-         tableData = garminSQLiteRepo.fetchTableData(databaseName, tableName);
+         tableData = garminSQLiteRepo.fetchTableData(databaseName, ValidTable.valueOf(tableName));
       } catch (Exception e) {
          logger.error("❌ Failed to fetch data from table '{}': {}", tableName, e.getMessage());
          throw new GarminDatabaseException("Failed to retrieve data for table: " + tableName, e);

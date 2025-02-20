@@ -1,6 +1,7 @@
 package com.backend.repos.SQL;
 
 import com.backend.config.GarminDatabaseConfig;
+import com.backend.enums.ValidTable;
 import com.backend.exceptions.GarminDatabaseException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,16 +51,12 @@ public class GarminSQLiteRepo {
 
    /**
     * Fetches all rows from a specified SQLite table.
-    * Ensures table name is valid and returns an empty list if no data is found.
+    * Uses the ValidTable enum to ensure only valid tables are queried.
     */
-   public List<Map<String, Object>> fetchTableData(String databaseName, String tableName) {
+   public List<Map<String, Object>> fetchTableData(String databaseName, ValidTable validTable) {
       List<Map<String, Object>> result = new ArrayList<>();
-
-      // ✅ Validate the table name before querying
-      if (!isValidTableName(tableName)) {
-         throw new IllegalArgumentException("❌ Invalid table name: " + tableName);
-      }
-
+      String tableName = validTable.getTableName();
+      // Using enum guarantees that tableName is valid.
       String query = "SELECT * FROM " + tableName;
 
       try (Connection connection = garminDbConfig.getConnection(databaseName);
@@ -87,23 +84,5 @@ public class GarminSQLiteRepo {
       }
 
       return result;
-   }
-
-   /**
-    * Ensures the provided table name is valid (only allows alphanumeric and underscores).
-    */
-   private boolean isValidTableName(String tableName) {
-      tableName = tableName.trim(); // 🔹 Ensure no leading/trailing spaces
-      logger.info("🔍 Checking trimmed table name: '{}'", tableName);
-
-      boolean isValid = tableName.matches("^[a-zA-Z0-9_]+$");
-
-      if (!isValid) {
-         logger.error("❌ Invalid table name attempted: '{}'", tableName);
-      } else {
-         logger.info("✅ Valid table name: '{}'", tableName);
-      }
-
-      return isValid;
    }
 }

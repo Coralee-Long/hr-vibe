@@ -1,5 +1,6 @@
 package com.backend.controllers;
 
+import com.backend.enums.ValidTable;
 import com.backend.exceptions.GarminProcessingException;
 import com.backend.services.GarminProcessingService;
 import org.slf4j.Logger;
@@ -14,26 +15,26 @@ import java.util.Map;
  * GarminProcessingController is responsible for processing SQLite data and storing the results
  * into different MongoDB collections. Each endpoint triggers the processing of an array (i.e. a collection)
  * of summary objects corresponding to a specific period (days, weeks, months, years).
-
+ *
  * Endpoints:
  * 1. POST /garmin/process/days
  *    - Processes and saves an array of current day summary objects from SQLite into the MongoDB collection.
-
+ *
  * 2. POST /garmin/process/weeks
  *    - Processes and saves an array of weekly summary objects from SQLite into the MongoDB collection.
-
+ *
  * 3. POST /garmin/process/months
  *    - Processes and saves an array of monthly summary objects from SQLite into the MongoDB collection.
-
+ *
  * 4. POST /garmin/process/years
  *    - Processes and saves an array of yearly summary objects from SQLite into the MongoDB collection.
-
+ *
  * 5. POST /garmin/process/recent
  *    - Processes and saves recent daily summaries from SQLite into MongoDB.
  *      The endpoint accepts a reference date as a parameter, retrieves the last 7 days of day summaries
  *      relative to that date, reformats them into a single RecentDailySummaries object (each numeric field is an array of 7 values),
  *      and saves that object.
-
+ *
  * Each endpoint returns a JSON response indicating success or an error message with details.
  * Custom exceptions thrown from the service layer are caught and returned with appropriate HTTP status codes.
  */
@@ -58,9 +59,9 @@ public class GarminProcessingController {
    @PostMapping("/process/days")
    public ResponseEntity<Map<String, String>> processCurrentDaySummary(
        @RequestParam String databaseName,
-       @RequestParam String tableName) {
+       @RequestParam ValidTable tableName) {
 
-      logger.info("Received request: databaseName={}, tableName={}", databaseName, tableName);
+      logger.info("Received request: databaseName={}, tableName={}", databaseName, tableName.getTableName());
 
       try {
          garminProcessingService.processAndSaveCurrentDaySummary(databaseName, tableName);
@@ -87,8 +88,8 @@ public class GarminProcessingController {
    @PostMapping("/process/weeks")
    public ResponseEntity<Map<String, String>> processWeeklySummary(
        @RequestParam String databaseName,
-       @RequestParam String tableName) {
-      logger.info("Starting processing for WeeklySummaries. DB='{}', Table='{}'", databaseName, tableName);
+       @RequestParam ValidTable tableName) {
+      logger.info("Starting processing for WeeklySummaries. DB='{}', Table='{}'", databaseName, tableName.getTableName());
       try {
          garminProcessingService.processAndSaveWeeklySummary(databaseName, tableName);
          logger.info("Successfully processed WeeklySummaries.");
@@ -114,8 +115,8 @@ public class GarminProcessingController {
    @PostMapping("/process/months")
    public ResponseEntity<Map<String, String>> processMonthlySummary(
        @RequestParam String databaseName,
-       @RequestParam String tableName) {
-      logger.info("Starting processing for MonthlySummaries. DB='{}', Table='{}'", databaseName, tableName);
+       @RequestParam ValidTable tableName) {
+      logger.info("Starting processing for MonthlySummaries. DB='{}', Table='{}'", databaseName, tableName.getTableName());
       try {
          garminProcessingService.processAndSaveMonthlySummary(databaseName, tableName);
          logger.info("Successfully processed MonthlySummaries.");
@@ -141,8 +142,8 @@ public class GarminProcessingController {
    @PostMapping("/process/years")
    public ResponseEntity<Map<String, String>> processYearlySummary(
        @RequestParam String databaseName,
-       @RequestParam String tableName) {
-      logger.info("Starting processing for YearlySummaries. DB='{}', Table='{}'", databaseName, tableName);
+       @RequestParam ValidTable tableName) {
+      logger.info("Starting processing for YearlySummaries. DB='{}', Table='{}'", databaseName, tableName.getTableName());
       try {
          garminProcessingService.processAndSaveYearlySummary(databaseName, tableName);
          logger.info("Successfully processed YearlySummaries.");

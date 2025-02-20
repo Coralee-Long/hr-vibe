@@ -1,5 +1,6 @@
 package com.backend.services;
 
+import com.backend.enums.ValidTable;
 import com.backend.exceptions.GarminProcessingException;
 import com.backend.models.CurrentDaySummary;
 import com.backend.models.MonthlySummary;
@@ -21,7 +22,6 @@ import java.util.Map;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -57,17 +57,16 @@ public class GarminProcessingService {
     * Processes and saves current day summaries.
     * Duplicate check: uses the 'day' field.
     */
-   public void processAndSaveCurrentDaySummary(String databaseName, String tableName) {
+   public void processAndSaveCurrentDaySummary(String databaseName, ValidTable validTable) {
       List<Map<String, Object>> rawData;
       try {
-         rawData = garminSQLiteRepo.fetchTableData(databaseName, tableName);
+         rawData = garminSQLiteRepo.fetchTableData(databaseName, validTable);
       } catch (RuntimeException e) {
-         // Wrap any runtime exception in a GarminProcessingException
-         throw new GarminProcessingException("Failed to process summary for " + tableName, e);
+         throw new GarminProcessingException("Failed to process summary for " + validTable.getTableName(), e);
       }
 
       if (rawData.isEmpty()) {
-         throw new GarminProcessingException("No data found in table: " + tableName);
+         throw new GarminProcessingException("No data found in table: " + validTable.getTableName());
       }
 
       List<CurrentDaySummary> summaries = rawData.stream()
@@ -91,10 +90,10 @@ public class GarminProcessingService {
     * Processes and saves weekly summaries.
     * Duplicate check: uses the 'firstDay' field.
     */
-   public void processAndSaveWeeklySummary(String databaseName, String tableName) {
-      List<Map<String, Object>> rawData = garminSQLiteRepo.fetchTableData(databaseName, tableName);
+   public void processAndSaveWeeklySummary(String databaseName, ValidTable validTable) {
+      List<Map<String, Object>> rawData = garminSQLiteRepo.fetchTableData(databaseName, validTable);
       if (rawData.isEmpty()) {
-         throw new GarminProcessingException("No data found in table: " + tableName);
+         throw new GarminProcessingException("No data found in table: " + validTable.getTableName());
       }
       List<WeeklySummary> summaries = rawData.stream()
           .map(DataParsingUtils::mapToWeeklySummary)
@@ -116,8 +115,8 @@ public class GarminProcessingService {
     * Processes and saves monthly summaries.
     * Duplicate check: uses the 'firstDay' field.
     */
-   public void processAndSaveMonthlySummary(String databaseName, String tableName) {
-      List<MonthlySummary> summaries = parseMonthlyData(databaseName, tableName);
+   public void processAndSaveMonthlySummary(String databaseName, ValidTable validTable) {
+      List<MonthlySummary> summaries = parseMonthlyData(databaseName, validTable);
       for (MonthlySummary summary : summaries) {
          validationService.validate(summary);
          Optional<MonthlySummary> existing = monthlySummaryRepo.findByFirstDay(summary.firstDay());
@@ -135,10 +134,10 @@ public class GarminProcessingService {
     * Processes and saves yearly summaries.
     * Duplicate check: uses the 'firstDay' field.
     */
-   public void processAndSaveYearlySummary(String databaseName, String tableName) {
-      List<Map<String, Object>> rawData = garminSQLiteRepo.fetchTableData(databaseName, tableName);
+   public void processAndSaveYearlySummary(String databaseName, ValidTable validTable) {
+      List<Map<String, Object>> rawData = garminSQLiteRepo.fetchTableData(databaseName, validTable);
       if (rawData.isEmpty()) {
-         throw new GarminProcessingException("No data found in table: " + tableName);
+         throw new GarminProcessingException("No data found in table: " + validTable.getTableName());
       }
       List<YearlySummary> summaries = rawData.stream()
           .map(DataParsingUtils::mapToYearlySummary)
@@ -191,20 +190,18 @@ public class GarminProcessingService {
       logger.info("✅ Successfully processed and saved RecentDailySummaries for latest day {}", recentSummary.latestDay());
    }
 
-
    // Helper to parse monthly data.
-   private List<MonthlySummary> parseMonthlyData(String databaseName, String tableName) {
-      List<Map<String, Object>> rawData = garminSQLiteRepo.fetchTableData(databaseName, tableName);
+   private List<MonthlySummary> parseMonthlyData(String databaseName, ValidTable validTable) {
+      List<Map<String, Object>> rawData = garminSQLiteRepo.fetchTableData(databaseName, validTable);
       if (rawData.isEmpty()) {
-         throw new GarminProcessingException("No data found in table: " + tableName);
+         throw new GarminProcessingException("No data found in table: " + validTable.getTableName());
       }
       return rawData.stream()
           .map(DataParsingUtils::mapToMonthlySummary)
           .toList();
    }
 
-   // Merge methods: In these simple merges, we preserve the existing record's id and key,
-   // and update the summary data from the incoming record.
+   // Merge methods: preserve existing record's id and key, updating the summary data.
 
    private CurrentDaySummary mergeCurrentDay(CurrentDaySummary existing, CurrentDaySummary incoming) {
       return new CurrentDaySummary(existing.id(), existing.day(), incoming.summary());
