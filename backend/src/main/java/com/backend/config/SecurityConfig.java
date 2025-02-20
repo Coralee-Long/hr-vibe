@@ -20,22 +20,24 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-   // Define a constant for the lifestyle URL pattern
-   private static final String LIFESTYLE_URL_PATTERN = "/lifestyle/**";
-
    @Bean
    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
       http
           .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-          // Enable CSRF protection using a CookieCsrfTokenRepository
-          .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+          // Re-enable CSRF protection using a CookieCsrfTokenRepository,
+          // but ignore CSRF protection on specific endpoints (adjust these patterns as needed)
+          .csrf(csrf -> csrf
+                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                    .ignoringRequestMatchers("/garmin/**", "/lifestyle/**")
+               )
           .authorizeHttpRequests(auth -> auth
                                      .requestMatchers("/auth/guest").permitAll()
                                      .requestMatchers("/auth/admin").authenticated()
-                                     .requestMatchers(HttpMethod.GET, LIFESTYLE_URL_PATTERN).permitAll()
-                                     .requestMatchers(HttpMethod.POST, LIFESTYLE_URL_PATTERN).hasRole("ADMIN")
-                                     .requestMatchers(HttpMethod.PUT, LIFESTYLE_URL_PATTERN).hasRole("ADMIN")
-                                     .requestMatchers(HttpMethod.DELETE, LIFESTYLE_URL_PATTERN).hasRole("ADMIN")
+                                     .requestMatchers(HttpMethod.GET, "/lifestyle/**").permitAll()
+                                     // For production, you might want to restrict POST/PUT/DELETE for /lifestyle/** to ADMIN
+                                     .requestMatchers(HttpMethod.POST, "/lifestyle/**").hasRole("ADMIN")
+                                     .requestMatchers(HttpMethod.PUT, "/lifestyle/**").hasRole("ADMIN")
+                                     .requestMatchers(HttpMethod.DELETE, "/lifestyle/**").hasRole("ADMIN")
                                      .anyRequest().permitAll()
                                 )
           .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
