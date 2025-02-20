@@ -66,7 +66,7 @@ public class GarminRetrievalController {
     * @return ResponseEntity containing the list of CurrentDaySummaryDTO objects.
     */
    @GetMapping("/days")
-   public ResponseEntity<List<CurrentDaySummaryDTO>> getAllDaySummaries(@RequestParam(defaultValue = "30") int limit) {
+   public ResponseEntity<List<CurrentDaySummaryDTO>> getAllDaySummaries(@RequestParam(defaultValue = "90") int limit) {
       logger.info("Fetching up to {} day summaries...", limit);
       return ResponseEntity.ok(retrievalService.getAllDaySummaries(limit));
    }
