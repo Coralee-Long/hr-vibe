@@ -1,67 +1,52 @@
-/**
- * Insights Page
- *
- * This page retrieves Garmin data by making multiple API calls—one for each 7‑day block over the full range
- * from "2025-01-01" to "2025-02-17". It then maps each block’s DTO into CombinedData objects (adding constant lifestyle factors)
- * and concatenates all the blocks together in chronological order.
- *
- * We then group the metrics into three charts:
- *   1. Cardio & Stress (bbMin, bbMax, stressAvg, rhrAvg)
- *   2. Respiration & SpO₂ (rrMin, rrMax, rrWakingAvg, spo2Min, spo2Avg)
- *   3. Time Durations (sleepAvg, remSleepAvg, intensityTime, moderateActivityTime, vigorousActivityTime)
- *
- * This grouping simplifies the y-axis scaling and improves clarity.
- */
-
 import { useEffect, useState } from "react";
 import { DefaultLayout } from "@/layout/DefaultLayout.tsx";
-import { CombinedInsightsChart } from "@/components/charts/CombinedInsightsChart.tsx";
-import { SyncedCharts } from "@/components/charts/SyncedCharts.tsx";
-import { MultiMetricChart } from "@/components/charts/MultiMetricChart";
+// Import our four separate chart components
+import { MultiMetricChartOne } from "@/components/charts/MultiMetricChartOne.tsx";
+import { MultiMetricChartTwo } from "@/components/charts/MulitMetricChartTwo.tsx";
+import { MultiMetricChartThree } from "@/components/charts/MultiMetricChartThree.tsx";
+import { MultiMetricChartFour } from "@/components/charts/MultiMetricChartFour.tsx";
+import { GraphCardWrapper } from "@/common/GraphCardWrapper";
+import { MultiMetricSeries } from "@/types/MultiMetricsChartTypes.ts";
 import { CombinedData } from "@/types/HealthData";
 import GarminDataService from "@/api/services/garminDataService";
 import { RecentDailySummariesDTO } from "@/types/RecentDailySummariesDTO";
-import { formatDate } from "@/utils/dateUtils"; // This function formats a date string to "DD Month YYYY"
+import { RiBattery2ChargeFill } from "react-icons/ri";
+import { FaHeartPulse, FaPersonRunning } from "react-icons/fa6";
+import { BsCloudSun } from "react-icons/bs";
 
-const DESIRED_START_DATE = "2025-01-01";
+const DESIRED_START_DATE = "2024-12-01";
 const DESIRED_END_DATE = "2025-02-17";
 
 /**
  * Transforms a RecentDailySummariesDTO (a 7-day block) into an array of CombinedData.
- *
- * @param dto - The DTO returned by the API for a block of days.
- * @param blockEndDate - The reference date representing the block’s end (in "YYYY-MM-DD" format).
- * @returns An array of CombinedData objects for that block.
+ * Provides safe defaults to avoid undefined values.
  */
 const transformBlockData = (dto: RecentDailySummariesDTO, blockEndDate: string): CombinedData[] => {
-  const blockLength = dto.rhrAvg.length; // expected to be 7
+  const blockLength = dto.rhrAvg.length;
   const endDate = new Date(blockEndDate);
   const blockData: CombinedData[] = [];
   for (let i = 0; i < blockLength; i++) {
     const current = new Date(endDate);
-    // Calculate the date for this index.
     current.setDate(endDate.getDate() - (blockLength - 1 - i));
-    // Use toISOString to convert the Date to "YYYY-MM-DD"
     const dateStr = current.toISOString().split("T")[0];
     blockData.push({
       date: dateStr,
-      rhrAvg: dto.rhrAvg[i],
-      sweatLoss: dto.sweatLoss[i],
-      bbMin: dto.bbMin[i],
-      bbMax: dto.bbMax[i],
-      stressAvg: dto.stressAvg[i],
-      rrMin: dto.rrMin[i],
-      rrMax: dto.rrMax[i],
-      rrWakingAvg: dto.rrWakingAvg[i],
-      spo2Min: dto.spo2Min[i],
-      spo2Avg: dto.spo2Avg[i],
-      sleepAvg: dto.sleepAvg[i],
-      remSleepAvg: dto.remSleepAvg[i],
-      activitiesDistance: dto.activitiesDistance[i],
-      intensityTime: dto.intensityTime[i],
-      moderateActivityTime: dto.moderateActivityTime[i],
-      vigorousActivityTime: dto.vigorousActivityTime[i],
-      // Add constant lifestyle factors for demo purposes.
+      rhrAvg: dto.rhrAvg[i] ?? 0,
+      sweatLoss: dto.sweatLoss[i] ?? 0,
+      bbMin: dto.bbMin[i] ?? 0,
+      bbMax: dto.bbMax[i] ?? 0,
+      stressAvg: dto.stressAvg[i] ?? 0,
+      rrMin: dto.rrMin[i] ?? 0,
+      rrMax: dto.rrMax[i] ?? 0,
+      rrWakingAvg: dto.rrWakingAvg[i] ?? 0,
+      spo2Min: dto.spo2Min[i] ?? 0,
+      spo2Avg: dto.spo2Avg[i] ?? 0,
+      sleepAvg: dto.sleepAvg[i] ?? "00:00:00",
+      remSleepAvg: dto.remSleepAvg[i] ?? "00:00:00",
+      activitiesDistance: dto.activitiesDistance[i] ?? 0,
+      intensityTime: dto.intensityTime[i] ?? "00:00:00",
+      moderateActivityTime: dto.moderateActivityTime[i] ?? "00:00:00",
+      vigorousActivityTime: dto.vigorousActivityTime[i] ?? "00:00:00",
       magnesium: false,
       binauralBeats: false,
       alcohol: true,
@@ -78,18 +63,13 @@ export const Insights = () => {
     const fetchFullRangeData = async () => {
       setLoading(true);
       const allData: CombinedData[] = [];
-      let currentEndDate = new Date(DESIRED_END_DATE);
+      const currentEndDate = new Date(DESIRED_END_DATE);
       const startDate = new Date(DESIRED_START_DATE);
       while (currentEndDate >= startDate) {
-        // Format currentEndDate as "YYYY-MM-DD" using toISOString, not formatDate.
         const refDateStr = currentEndDate.toISOString().split("T")[0];
-        console.log("Fetching block ending at:", refDateStr);
         try {
           const blockDto: RecentDailySummariesDTO = await GarminDataService.getRecentDailySummaries(refDateStr);
-          console.log("Fetched block DTO for", refDateStr, ":", blockDto);
           const blockData = transformBlockData(blockDto, refDateStr);
-          console.log("Transformed block data:", blockData);
-          // Prepend this block's data so that earlier dates come first.
           allData.unshift(...blockData);
           const blockLength = blockDto.rhrAvg.length;
           currentEndDate.setDate(currentEndDate.getDate() - blockLength);
@@ -98,45 +78,106 @@ export const Insights = () => {
           break;
         }
       }
-      console.log("Final combinedData passed to charts:", allData);
       setCombinedData(allData);
       setLoading(false);
     };
     fetchFullRangeData();
   }, []);
 
-  // Prepare x-axis categories (dates).
-  const categories = combinedData.map((d) => d.date);
+  // Even if series are in xy format, we calculate categories as a fallback.
+  // const categories = combinedData.map(d => d.date);
 
-  // --- Chart 1: Cardio & Stress Metrics ---
-  const chart1Series = [
-    { name: "Low Body Battery", data: combinedData.map((d) => d.bbMin) },
-    { name: "High Body Battery", data: combinedData.map((d) => d.bbMax) },
-    { name: "Stress Avg", data: combinedData.map((d) => d.stressAvg) },
-    { name: "Resting HR", data: combinedData.map((d) => d.rhrAvg) },
+  /**
+   * Chart 1: Body Battery & Cardio Metrics
+   */
+  const chart1Series: MultiMetricSeries[] = [
+    {
+      name: "Body Battery Range",
+      type: "rangeArea" as const,
+      data: combinedData.map(d => ({ x: d.date, y: [d.bbMin ?? 0, d.bbMax ?? 0] })),
+    },
+    {
+      name: "Body Battery Average",
+      type: "line" as const,
+      data: combinedData.map(d => ({ x: d.date, y: ((d.bbMin ?? 0) + (d.bbMax ?? 0)) / 2 })),
+    },
+    {
+      name: "Stress Avg",
+      type: "line" as const,
+      data: combinedData.map(d => ({ x: d.date, y: d.stressAvg ?? 0 })),
+    },
+    {
+      name: "Resting HR",
+      type: "line" as const,
+      data: combinedData.map(d => ({ x: d.date, y: d.rhrAvg ?? 0 })),
+    }
   ];
 
-  // --- Chart 2: Respiration & SpO₂ Metrics ---
-  const chart2Series = [
-    { name: "Respiration Min", data: combinedData.map((d) => d.rrMin) },
-    { name: "Respiration Max", data: combinedData.map((d) => d.rrMax) },
-    { name: "Waking Respiration Avg", data: combinedData.map((d) => d.rrWakingAvg) },
-    { name: "SpO₂ Min", data: combinedData.map((d) => d.spo2Min) },
-    { name: "SpO₂ Avg", data: combinedData.map((d) => d.spo2Avg) },
+  /**
+   * Chart 2: Respiration & SpO₂ Metrics
+   */
+  const chart2Series: MultiMetricSeries[] = [
+    {
+      name: "Respiration Range",
+      type: "rangeArea" as const,
+      data: combinedData.map(d => ({ x: d.date, y: [d.rrMin ?? 0, d.rrMax ?? 0] })),
+    },
+    {
+      name: "Waking Respiration Avg",
+      type: "line" as const,
+      data: combinedData.map(d => ({ x: d.date, y: d.rrWakingAvg ?? 0 })),
+    },
+    {
+      name: "SpO₂ Avg",
+      type: "line" as const,
+      data: combinedData.map(d => ({ x: d.date, y: d.spo2Avg ?? 0 })),
+    }
   ];
 
-  // --- Chart 3: Time Durations (converted to minutes) ---
+  /**
+   * Chart 3: Sleep Bars (Stacked)
+   */
   const convertTime = (timeStr: string): number => {
-    const [h, m, s] = timeStr.split(":").map(Number);
+    if (!timeStr) return 0;
+    const parts = timeStr.split(":").map(Number);
+    if (parts.length !== 3) return 0;
+    const [h, m, s] = parts;
     return h * 60 + m + s / 60;
   };
+  const remSleepMins = combinedData.map(d => convertTime(d.remSleepAvg));
+  const totalSleepMins = combinedData.map(d => convertTime(d.sleepAvg));
+  const chart3Series: MultiMetricSeries[] = [
+    {
+      name: "REM Sleep (min)",
+      type: "bar" as const,
+      data: remSleepMins.map((y, i) => ({ x: combinedData[i].date, y })),
+    },
+    {
+      name: "Total Sleep (min)",
+      type: "bar" as const,
+      data: totalSleepMins.map((y, i) => ({ x: combinedData[i].date, y })),
+    }
+  ];
 
-  const chart3Series = [
-    { name: "Sleep Avg (min)", data: combinedData.map((d) => convertTime(d.sleepAvg)) },
-    { name: "REM Sleep (min)", data: combinedData.map((d) => convertTime(d.remSleepAvg)) },
-    { name: "Intensity Time (min)", data: combinedData.map((d) => convertTime(d.intensityTime)) },
-    { name: "Moderate Activity (min)", data: combinedData.map((d) => convertTime(d.moderateActivityTime)) },
-    { name: "Vigorous Activity (min)", data: combinedData.map((d) => convertTime(d.vigorousActivityTime)) },
+  /**
+   * Chart 4: Activity Metrics
+   */
+  const chart4Series: MultiMetricSeries[] = [
+    {
+      name: "Intensity Time (min)",
+      type: "area" as const,
+      data: combinedData.map(d => ({ x: d.date, y: convertTime(d.intensityTime) })),
+    },
+    {
+      name: "Moderate Activity (min)",
+      type: "line" as const,
+      data: combinedData.map(d => ({ x: d.date, y: convertTime(d.moderateActivityTime) })),
+    },
+    {
+      name: "Vigorous Activity (min)",
+      type: "line" as const,
+      data: combinedData.map(d => ({ x: d.date, y: convertTime(d.vigorousActivityTime) })),
+    }
   ];
 
   return (
@@ -145,30 +186,49 @@ export const Insights = () => {
         {loading ? (
           <div>Loading data...</div>
         ) : (
-          <>
-            {/* Existing charts */}
-            <CombinedInsightsChart data={combinedData} />
-            <SyncedCharts data={combinedData} />
-            {/* New MultiMetricCharts */}
-            <MultiMetricChart
-              categories={categories}
-              seriesData={chart1Series}
-              title="Cardio & Stress Metrics"
-              loading={loading}
-            />
-            <MultiMetricChart
-              categories={categories}
-              seriesData={chart2Series}
-              title="Respiration & SpO₂ Metrics"
-              loading={loading}
-            />
-            <MultiMetricChart
-              categories={categories}
-              seriesData={chart3Series}
-              title="Time Durations (minutes)"
-              loading={loading}
-            />
-          </>
+          <div className="insights">
+            {/* Wrap each chart in a GraphCardWrapper */}
+            <GraphCardWrapper
+              title="Stress & Cardio Metrics"
+              icon={<RiBattery2ChargeFill size={32} color="#FFB54C" />}
+            >
+              <MultiMetricChartOne
+                seriesData={chart1Series}
+                title="Body Battery Range, Stress & Resting Heart Rate"
+                loading={loading}
+              />
+            </GraphCardWrapper>
+            <GraphCardWrapper
+              title="Respiration Metrics"
+              icon={<FaHeartPulse size={32} color="#10B981" />}
+            >
+              <MultiMetricChartTwo
+                seriesData={chart2Series}
+                title="Respiration & SpO₂"
+                loading={loading}
+              />
+            </GraphCardWrapper>
+            <GraphCardWrapper
+              title="Sleep Metrics"
+              icon={<BsCloudSun size={32} color="#3C50E0" />}
+            >
+              <MultiMetricChartThree
+                seriesData={chart3Series}
+                title="REM & Total Sleep Duration"
+                loading={loading}
+              />
+            </GraphCardWrapper>
+            <GraphCardWrapper
+              title="Activity Metrics"
+              icon={<FaPersonRunning size={32} color="#ff9466" />}
+            >
+              <MultiMetricChartFour
+                seriesData={chart4Series}
+                title="Activity Intensity & Effort"
+                loading={loading}
+              />
+            </GraphCardWrapper>
+          </div>
         )}
       </div>
     </DefaultLayout>
