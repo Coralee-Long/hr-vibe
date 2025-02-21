@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import LogoIcon from "@/images/logo/hrvibe-logo.png";
-import { CountDownTimer}  from "@/common/CountdownTimer.tsx";
+import LogoText from "@/images/logo/hrvibe-text2.png"
 
 export const Home = () => {
   const navigate = useNavigate();
@@ -15,23 +15,18 @@ export const Home = () => {
         <div className="no-scrollbar overflow-y-auto py-10">
           <div className="mx-auto w-full max-w-[600px]">
             <div className="text-center flex flex-col justify-center items-center">
-              <h1 className="mb-4.5  px-6 text-3xl font-black text-black dark:text-white lg:text-4xl xl:text-[50px] xl:leading-[60px]">
-                Coming Soon
-              </h1>
-              <img src={LogoIcon} alt="logo" className="w-24 h-24 m-3" />
-              <p className="font-medium p-6">
-                This Project is currently under construction, details to follow
-                soon.
+              <h3 className="mb-4.5  px-6 text-3xl font-black text-black dark:text-white lg:text-4xl xl:text-[50px] xl:leading-[60px]">
+                Welcome to
+              </h3>
+              <div className="flex items-center justify-center w-full"  >
+                <img src={LogoIcon} alt="logo" className="w-24 h-24 m-3" />
+                <img src={LogoText} alt="logo" className="h-24 m-3" />
+              </div>
+              <p className="mb-5 font-medium text-black dark:text-white p-6">
+              Unlocking Personal Health Insights
               </p>
             </div>
           </div>
-
-          {/* <!-- Countdown timer start --> */}
-          <div className="mt-10 flex justify-center">
-            <CountDownTimer finalDate={"2025-21-02"}/>
-          </div>
-          {/* <!-- Countdown timer start --> */}
-
           {/* Navigate to Login Page */}
           <div className="mt-20 flex justify-center">
             <button

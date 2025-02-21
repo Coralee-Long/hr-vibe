@@ -83,5 +83,35 @@ export const BodyBatteryChartConfig = (
         },
       ],
     },
+    // Custom tooltip to override the default marker size
+    tooltip: {
+      marker: { show: false },
+      shared: true,
+      intersect: false,
+      custom: function({
+                         series,
+                         dataPointIndex,
+                         w,
+                       }: {
+        series: number[][];
+        seriesIndex: number;
+        dataPointIndex: number;
+        w: any;
+      }): string {
+        let tooltipHtml = `<div style="padding:8px; font-size:12px;">`;
+        w.config.series.forEach((s: any, i: number) => {
+          // If the series is hidden, skip it.
+          if (w.globals.seriesHidden && w.globals.seriesHidden[i]) return;
+          const val = series[i][dataPointIndex];
+          // Build a small marker inline with the text.
+          const markerHtml = `<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background-color:${w.globals.colors[i]};margin-right:4px;"></span>`;
+          tooltipHtml += `<div style="margin-bottom:2px;">
+                            ${markerHtml}<strong>${s.name}:</strong> ${val}
+                          </div>`;
+        });
+        tooltipHtml += `</div>`;
+        return tooltipHtml;
+      },
+    },
   };
 };
