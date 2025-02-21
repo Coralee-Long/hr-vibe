@@ -20,15 +20,19 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-   // Define a constant for the lifestyle URL pattern
+   // Define a constant for the lifestyle URL pattern.
    private static final String LIFESTYLE_URL_PATTERN = "/lifestyle/**";
 
    @Bean
    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
       http
           .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-          // Enable CSRF protection using a CookieCsrfTokenRepository
-          .csrf(csrf -> csrf.csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
+          // Enable CSRF protection using a CookieCsrfTokenRepository,
+          // but ignore CSRF for the /auth/logout endpoint.
+          .csrf(csrf -> csrf
+                    .ignoringRequestMatchers("/auth/logout")
+                    .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+               )
           .authorizeHttpRequests(auth -> auth
                                      .requestMatchers("/auth/guest").permitAll()
                                      .requestMatchers("/auth/admin").authenticated()
@@ -51,7 +55,8 @@ public class SecurityConfig {
       CorsConfiguration configuration = new CorsConfiguration();
       configuration.setAllowedOrigins(List.of("http://localhost:5173"));
       configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-      configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type"));
+      // Allow the CSRF header to pass through.
+      configuration.setAllowedHeaders(List.of("Authorization", "Cache-Control", "Content-Type", "X-XSRF-TOKEN"));
       configuration.setAllowCredentials(true);
       UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
       source.registerCorsConfiguration("/**", configuration);

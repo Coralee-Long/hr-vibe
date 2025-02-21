@@ -11,6 +11,13 @@ import axios from "axios";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { UserType } from "@/types/UserType.ts";
 
+// Helper function to read a cookie by name.
+// Returns the cookie value if found, otherwise null.
+const getCookie = (name: string): string | null => {
+  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : null;
+};
+
 // Define the authentication context type.
 type AuthContextType = {
   user: UserType | null;
@@ -121,10 +128,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
    * -------
    * Logs out the user by calling the backend logout endpoint.
    * Clears the user state and navigates back to the home page.
+   *
+   * Modified to include credentials and the CSRF token.
    */
   const logout = async () => {
     try {
-      await axios.post(`${backendUrl}/auth/logout`, {});
+      // Retrieve the CSRF token from cookies.
+      const csrfToken = getCookie("XSRF-TOKEN");
+      await axios.post(
+        `${backendUrl}/auth/logout`,
+        {},
+        {
+          withCredentials: true,
+          headers: { "X-XSRF-TOKEN": csrfToken || "" },
+        }
+      );
       setUser(null);
       navigate("/");
     } catch (error) {
